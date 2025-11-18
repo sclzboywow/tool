@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}伺服电机电子齿轮比计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>伺服电机电子齿轮比计算</h1>
+    <p class="subtitle">计算伺服电机的电子齿轮比，包括正向计算和反向计算两种方式</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">编码器分辨率</td><td style="padding: 0.3rem 0;">编码器每转产生的脉冲数(脉冲/转)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">机械减速比</td><td style="padding: 0.3rem 0;">机械传动系统的减速比</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">负载移动距离</td><td style="padding: 0.3rem 0;">负载移动的实际距离(mm)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">电机转数</td><td style="padding: 0.3rem 0;">电机转动的圈数(转)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">脉冲当量</td><td style="padding: 0.3rem 0;">每个脉冲对应的负载移动距离(mm/脉冲)</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项。方式一需要提供负载移动距离和电机转数；方式二需要提供脉冲当量。</span>
+    </div>
+</div>
+
+<!-- 标签页 -->
+<div class="sub-tabs-container">
+    <div id="sub-tabs-gear-ratio" class="sub-tabs active">
+        <button class="sub-tab active" onclick="switchSubTab('method1')">方式一：正向计算</button>
+        <button class="sub-tab" onclick="switchSubTab('method2')">方式二：反向计算</button>
+    </div>
+</div>
+
+<!-- 方式一：正向计算 -->
+<div id="method1" class="tab-content active">
+    <div class="tool-form">
+        <h2>方式一：正向计算（已知负载移动距离和电机转数）</h2>
+        
+        <!-- 公式说明 -->
+        <p class="formula-info">电子齿轮比 = (编码器分辨率 × 机械减速比 × 电机转数) / 负载移动距离</p>
+        <p class="formula-info">脉冲当量 = 负载移动距离 / (编码器分辨率 × 电子齿轮比 × 机械减速比)</p>
+        
+        <!-- 物理来源和适用范围说明 -->
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于伺服电机控制理论和运动学关系。电子齿轮比是伺服驱动器中用于匹配编码器脉冲与实际机械运动关系的参数。正向计算基于已知的负载移动距离和电机转数，通过编码器分辨率和机械减速比来确定电子齿轮比。这是标准伺服电机控制理论，用于精确控制负载位置。<br>
+            <strong>适用范围：</strong>适用于伺服电机系统的电子齿轮比计算，用于配置伺服驱动器参数，实现精确的位置控制。适用于丝杠传动、皮带传动、齿轮齿条传动等各类伺服电机应用。
+        </p>
+        
+        <div class="form-group">
+            <label for="m1_encoder_resolution">编码器分辨率 (脉冲/转) <span class="required">*</span></label>
+            <input type="number" id="m1_encoder_resolution" step="1" min="1" value="10000" placeholder="例如: 10000">
+            <small>常见值：10000、131072、262144等</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="m1_mechanical_ratio">机械减速比 <span class="required">*</span></label>
+            <input type="number" id="m1_mechanical_ratio" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+            <small>无减速机时填1，有减速机时填写实际减速比</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="m1_load_distance">负载移动距离 (mm) <span class="required">*</span></label>
+            <input type="number" id="m1_load_distance" step="0.01" min="0.01" value="10" placeholder="例如: 10">
+            <small>负载移动的实际距离</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="m1_motor_revolutions">电机转数 (转) <span class="required">*</span></label>
+            <input type="number" id="m1_motor_revolutions" step="0.01" min="0.01" value="1" placeholder="例如: 1">
+            <small>电机转动的圈数</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateMethod1()">计算</button>
+        
+        <div id="m1_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">电子齿轮比: <span id="m1_result_value"></span></div>
+            <div class="result-value">脉冲当量: <span id="m1_pulse_equivalent_value"></span> mm/脉冲</div>
+            <div class="result-formula" id="m1_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 方式二：反向计算 -->
+<div id="method2" class="tab-content">
+    <div class="tool-form">
+        <h2>方式二：反向计算（已知脉冲当量）</h2>
+        
+        <!-- 公式说明 -->
+        <p class="formula-info">电子齿轮比 = 编码器分辨率 / (脉冲当量 × 机械减速比)</p>
+        <p class="formula-info">电机转数 = 负载移动距离 / (编码器分辨率 × 电子齿轮比 × 机械减速比 × 脉冲当量)</p>
+        
+        <!-- 物理来源和适用范围说明 -->
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于伺服电机控制理论和运动学关系。电子齿轮比是伺服驱动器中用于匹配编码器脉冲与实际机械运动关系的参数。反向计算基于已知的脉冲当量（每个脉冲对应的移动距离），通过编码器分辨率和机械减速比来确定电子齿轮比。这是标准伺服电机控制理论，用于精确控制负载位置。<br>
+            <strong>适用范围：</strong>适用于伺服电机系统的电子齿轮比计算，用于配置伺服驱动器参数，实现精确的位置控制。适用于丝杠传动、皮带传动、齿轮齿条传动等各类伺服电机应用。
+        </p>
+        
+        <div class="form-group">
+            <label for="m2_encoder_resolution">编码器分辨率 (脉冲/转) <span class="required">*</span></label>
+            <input type="number" id="m2_encoder_resolution" step="1" min="1" value="10000" placeholder="例如: 10000">
+            <small>常见值：10000、131072、262144等</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="m2_mechanical_ratio">机械减速比 <span class="required">*</span></label>
+            <input type="number" id="m2_mechanical_ratio" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+            <small>无减速机时填1，有减速机时填写实际减速比</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="m2_pulse_equivalent">脉冲当量 (mm/脉冲) <span class="required">*</span></label>
+            <input type="number" id="m2_pulse_equivalent" step="0.000001" min="0.000001" placeholder="例如: 0.001">
+            <small>每个脉冲对应的负载移动距离</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="m2_load_distance">负载移动距离 (mm)</label>
+            <input type="number" id="m2_load_distance" step="0.01" min="0.01" placeholder="例如: 10">
+            <small>可选：如果填写，将计算电机转数</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateMethod2()">计算</button>
+        
+        <div id="m2_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">电子齿轮比: <span id="m2_result_value"></span></div>
+            <div id="m2_motor_revolutions_result" class="result-value" style="display: none;">电机转数: <span id="m2_motor_revolutions_value"></span> 转</div>
+            <div class="result-formula" id="m2_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/tools/electronic_gear_ratio.js"></script>
+{% endblock %}
+

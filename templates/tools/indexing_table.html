@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}分度盘机构选型计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>分度盘机构选型计算</h1>
+    <p class="subtitle">计算分度盘机构的电机选型参数，包括加减速时间、电机转速、负载转矩、加速转矩、必须转矩和惯量比等参数</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr; gap: 1.5rem; align-items: start;">
+        <!-- 左侧：机械结构参数说明 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">机械结构参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500; width: 80px;">D<sub>T</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">分度盘直径</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(m)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">L<sub>T</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">分度盘厚度</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(m)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">D<sub>W</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">工作物直径</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(m)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">L<sub>W</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">工作物厚度</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(m)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">ρ</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">工作台材质密度</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(kg/m³)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">n</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">工作物数量</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(个)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">l</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">由分度盘中心至工作物中心的距离</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(m)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">θ</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">定位角度</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(°)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">t</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">定位时间</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">A</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">加减速时间比</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">i</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">减速机减速比</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">η<sub>G</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">减速机效率</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;"></td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- 中间分隔线 -->
+        <div style="background: #4caf50; width: 4px; height: 100%; border-radius: 2px;"></div>
+        
+        <!-- 右侧：其他常数和电机参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">其他常数</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">g</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem; text-align: right;">9.8 m/s²</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">π</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem; text-align: right;">3.1416</td>
+                </tr>
+            </table>
+            
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">电机参数</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">S</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">安全系数</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(通常1-2)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">J<sub>M</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">电机惯量</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(kg·m²)</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 底部说明 -->
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 标签页 -->
+<div class="sub-tabs-container">
+    <div id="sub-tabs-indexing" class="sub-tabs active">
+        <button class="sub-tab active" onclick="switchSubTab('speed_curve')">1. 速度曲线</button>
+        <button class="sub-tab" onclick="switchSubTab('motor_speed')">2. 电机转速</button>
+        <button class="sub-tab" onclick="switchSubTab('load_torque')">3. 负载转矩</button>
+        <button class="sub-tab" onclick="switchSubTab('acceleration_torque')">4. 加速转矩</button>
+        <button class="sub-tab" onclick="switchSubTab('required_torque')">5. 必须转矩</button>
+        <button class="sub-tab" onclick="switchSubTab('inertia_ratio')">6. 惯量比</button>
+    </div>
+</div>
+
+<!-- 1. 速度曲线 - 加减速时间计算 -->
+<div id="speed_curve" class="tab-content active">
+    <div class="tool-form">
+        <h2>速度曲线 - 加减速时间计算</h2>
+        <p class="formula-info">公式: t<sub>0</sub> = t × A</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于分度盘机构的运动控制理论。加减速时间t<sub>0</sub> = t × A，其中t为定位时间，A为加减速时间比。加减速时间通常以定位时间的25%计算（A=0.25），用于确定分度盘机构的加减速阶段时间，为后续的角加速度和转速计算提供基础。这是标准分度盘机构运动控制方法。<br>
+            <strong>适用范围：</strong>适用于分度盘机构选型计算，用于确定加减速时间，为后续的电机转速和加速转矩计算提供基础。
+        </p>
+        
+        <div class="form-group">
+            <label for="sc_t">定位时间 t (s) <span class="required">*</span></label>
+            <input type="number" id="sc_t" step="0.01" min="0.01" value="1.5" placeholder="例如: 1.5">
+        </div>
+        
+        <div class="form-group">
+            <label for="sc_A">加减速时间比 A <span class="required">*</span></label>
+            <input type="number" id="sc_A" step="0.01" min="0" max="1" value="0.5" placeholder="例如: 0.5">
+            <small>通常范围: 0-1（通常为0.25，即定位时间的25%）</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateSpeedCurve()">计算</button>
+        
+        <div id="sc_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">加减速时间 t<sub>0</sub>: <span id="sc_result_value"></span> <span id="sc_result_unit"></span></div>
+            <div class="result-formula" id="sc_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. 电机转速 -->
+<div id="motor_speed" class="tab-content">
+    <div class="tool-form">
+        <h2>电机转速计算</h2>
+        <p class="formula-info">减速机输出轴角加速度: β<sub>G</sub> = ((θ×π)/180)/(t<sub>0</sub>×(t-t<sub>0</sub>))</p>
+        <p class="formula-info">减速机输出轴最大转速: N = (β<sub>G</sub>×t<sub>0</sub>×60)/(2×π)</p>
+        <p class="formula-info">电机轴角加速度: β<sub>m</sub> = β<sub>G</sub> × i</p>
+        <p class="formula-info">电机输出轴转速: N<sub>M</sub> = N × i</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于分度盘机构的运动学关系。减速机输出轴角加速度β<sub>G</sub> = ((θ×π)/180)/(t<sub>0</sub>×(t-t<sub>0</sub>))，基于匀加速运动学公式，其中θ为定位角度（转换为弧度），t<sub>0</sub>为加减速时间，t为定位时间。减速机输出轴最大转速N = (β<sub>G</sub>×t<sub>0</sub>×60)/(2×π)，基于角速度与角加速度的关系，乘以60转换为rpm。电机轴角加速度β<sub>m</sub> = β<sub>G</sub> × i，通过减速比i放大。电机输出轴转速N<sub>M</sub> = N × i，通过减速比i放大。这是标准分度盘机构运动学和减速机理论。<br>
+            <strong>适用范围：</strong>适用于分度盘机构选型计算，用于根据定位角度、定位时间和减速比确定电机转速。
+        </p>
+        
+        <div class="form-group">
+            <label for="ms_theta">定位角度 θ (°) <span class="required">*</span></label>
+            <input type="number" id="ms_theta" step="0.1" min="0.1" value="15" placeholder="例如: 15">
+        </div>
+        
+        <div class="form-group">
+            <label for="ms_t">定位时间 t (s) <span class="required">*</span></label>
+            <input type="number" id="ms_t" step="0.01" min="0.01" value="1.5" placeholder="例如: 1.5">
+        </div>
+        
+        <div class="form-group">
+            <label for="ms_t0">加减速时间 t<sub>0</sub> (s) <span class="required">*</span></label>
+            <input type="number" id="ms_t0" step="0.01" min="0.01" placeholder="例如: 0.75">
+        </div>
+        
+        <div class="form-group">
+            <label for="ms_i">减速机减速比 i <span class="required">*</span></label>
+            <input type="number" id="ms_i" step="0.1" min="0.1" value="5" placeholder="例如: 5">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateMotorSpeed()">计算</button>
+        
+        <div id="ms_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">减速机输出轴角加速度 β<sub>G</sub>: <span id="ms_betaG_value"></span> rad/s²</div>
+            <div class="result-value">减速机输出轴最大转速 N: <span id="ms_N_value"></span> rpm</div>
+            <div class="result-value">电机轴角加速度 β<sub>m</sub>: <span id="ms_betaM_value"></span> rad/s²</div>
+            <div class="result-value">电机输出轴转速 N<sub>M</sub>: <span id="ms_result_value"></span> <span id="ms_result_unit"></span></div>
+            <div class="result-formula" id="ms_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. 负载转矩计算 -->
+<div id="load_torque" class="tab-content">
+    <div class="tool-form">
+        <h2>负载转矩计算</h2>
+        <p class="formula-info">因为摩擦负载很小，故忽略</p>
+        <p class="formula-info">T<sub>L</sub> = 0 Nm</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于分度盘机构的实际工作情况。分度盘机构通常采用精密轴承和低摩擦设计，摩擦负载很小，可以忽略不计。因此负载转矩T<sub>L</sub> = 0 Nm。这是基于分度盘机构实际工程应用的经验总结。<br>
+            <strong>适用范围：</strong>适用于分度盘机构选型计算，对于摩擦负载很小的分度盘机构，负载转矩可以忽略。
+        </p>
+        
+        <button class="btn btn-primary" onclick="calculateLoadTorque()">计算</button>
+        
+        <div id="lt_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">负载转矩 T<sub>L</sub>: <span id="lt_result_value"></span> <span id="lt_result_unit"></span></div>
+            <div class="result-formula" id="lt_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. 加速转矩 -->
+<div id="acceleration_torque" class="tab-content">
+    <div class="tool-form">
+        <h2>加速转矩计算</h2>
+        <p class="formula-info">工作台的惯量: J<sub>T</sub> = (π×ρ×L<sub>T</sub>×D<sub>T</sub><sup>4</sup>)/32</p>
+        <p class="formula-info">工作物的惯量（绕工作物中心轴旋转）: J<sub>W1</sub> = (π×ρ×L<sub>W</sub>×D<sub>W</sub><sup>4</sup>)/32</p>
+        <p class="formula-info">工作物质量: m<sub>w</sub> = (π×ρ×L<sub>W</sub>×D<sub>W</sub><sup>2</sup>)/4</p>
+        <p class="formula-info">工作物的惯量（按工作物体中心自转）: J<sub>W</sub> = n×(J<sub>W1</sub> + m<sub>w</sub>×l<sup>2</sup>)</p>
+        <p class="formula-info">全负载惯量: J<sub>L</sub> = J<sub>T</sub> + J<sub>W</sub></p>
+        <p class="formula-info">负载折算到电机轴上的惯量: J<sub>LM</sub> = J<sub>L</sub>/i<sup>2</sup></p>
+        <p class="formula-info">电机轴加速转矩: T<sub>S</sub> = ((J<sub>LM</sub> + J<sub>M</sub>)×β<sub>m</sub>)/η<sub>G</sub></p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于转动惯量理论和牛顿第二定律。工作台的惯量J<sub>T</sub> = (π×ρ×L<sub>T</sub>×D<sub>T</sub><sup>4</sup>)/32，基于薄圆盘绕中心轴的转动惯量公式，其中ρ为工作台材质密度，L<sub>T</sub>为分度盘厚度，D<sub>T</sub>为分度盘直径。工作物的惯量（绕工作物中心轴旋转）J<sub>W1</sub> = (π×ρ×L<sub>W</sub>×D<sub>W</sub><sup>4</sup>)/32，同样基于薄圆盘转动惯量公式。工作物质量m<sub>w</sub> = (π×ρ×L<sub>W</sub>×D<sub>W</sub><sup>2</sup>)/4，基于圆柱体体积公式。工作物的惯量（按工作物体中心自转）J<sub>W</sub> = n×(J<sub>W1</sub> + m<sub>w</sub>×l<sup>2</sup>)，考虑n个工作物，每个工作物既有绕自身中心轴的转动惯量J<sub>W1</sub>，又有绕分度盘中心的转动惯量m<sub>w</sub>×l<sup>2</sup>（平行轴定理）。全负载惯量J<sub>L</sub> = J<sub>T</sub> + J<sub>W</sub>。负载折算到电机轴上的惯量J<sub>LM</sub> = J<sub>L</sub>/i<sup>2</sup>，通过减速比i<sup>2</sup>折算。电机轴加速转矩T<sub>S</sub> = ((J<sub>LM</sub> + J<sub>M</sub>)×β<sub>m</sub>)/η<sub>G</sub>，基于牛顿第二定律T = J×α，考虑减速机效率η<sub>G</sub>。这是标准转动惯量理论和减速机理论。<br>
+            <strong>适用范围：</strong>适用于分度盘机构选型计算，用于计算系统的转动惯量和加速转矩，为后续的必须转矩计算提供基础。
+        </p>
+        
+        <div class="form-group">
+            <label for="at_DT">分度盘直径 D<sub>T</sub> (m) <span class="required">*</span></label>
+            <input type="number" id="at_DT" step="0.0001" min="0.0001" value="0.48" placeholder="例如: 0.48">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_LT">分度盘厚度 L<sub>T</sub> (m) <span class="required">*</span></label>
+            <input type="number" id="at_LT" step="0.0001" min="0.0001" value="0.03" placeholder="例如: 0.03">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_DW">工作物直径 D<sub>W</sub> (m) <span class="required">*</span></label>
+            <input type="number" id="at_DW" step="0.0001" min="0.0001" value="0.04" placeholder="例如: 0.04">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_LW">工作物厚度 L<sub>W</sub> (m) <span class="required">*</span></label>
+            <input type="number" id="at_LW" step="0.0001" min="0.0001" value="0.4" placeholder="例如: 0.4">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_rho">工作台材质密度 ρ (kg/m³) <span class="required">*</span></label>
+            <input type="number" id="at_rho" step="1" min="1" value="900" placeholder="例如: 900">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_n">工作物数量 n (个) <span class="required">*</span></label>
+            <input type="number" id="at_n" step="1" min="1" value="24" placeholder="例如: 24">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_l">由分度盘中心至工作物中心的距离 l (m) <span class="required">*</span></label>
+            <input type="number" id="at_l" step="0.0001" min="0.0001" value="0.41" placeholder="例如: 0.41">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_i">减速机减速比 i <span class="required">*</span></label>
+            <input type="number" id="at_i" step="0.1" min="0.1" value="5" placeholder="例如: 5">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_JM">电机惯量 J<sub>M</sub> (kg·m²) <span class="required">*</span></label>
+            <input type="number" id="at_JM" step="0.00001" min="0.00001" value="0.00014" placeholder="例如: 0.00014">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_betaM">电机轴角加速度 β<sub>m</sub> (rad/s²) <span class="required">*</span></label>
+            <input type="number" id="at_betaM" step="0.0001" min="0.0001" placeholder="例如: 从电机转速计算中获得">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_etaG">减速机效率 η<sub>G</sub> <span class="required">*</span></label>
+            <input type="number" id="at_etaG" step="0.01" min="0" max="1" value="0.7" placeholder="例如: 0.7">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateAccelerationTorque()">计算</button>
+        
+        <div id="at_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">工作台的惯量 J<sub>T</sub>: <span id="at_JT_value"></span> kg·m²</div>
+            <div class="result-value">工作物的惯量（绕工作物中心轴旋转）J<sub>W1</sub>: <span id="at_JW1_value"></span> kg·m²</div>
+            <div class="result-value">工作物质量 m<sub>w</sub>: <span id="at_mw_value"></span> kg</div>
+            <div class="result-value">工作物的惯量（按工作物体中心自转）J<sub>W</sub>: <span id="at_JW_value"></span> kg·m²</div>
+            <div class="result-value">全负载惯量 J<sub>L</sub>: <span id="at_JL_value"></span> kg·m²</div>
+            <div class="result-value">负载折算到电机轴上的惯量 J<sub>LM</sub>: <span id="at_JLM_value"></span> kg·m²</div>
+            <div class="result-value">电机轴加速转矩 T<sub>S</sub>: <span id="at_result_value"></span> <span id="at_result_unit"></span></div>
+            <div class="result-formula" id="at_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. 必须转矩 -->
+<div id="required_torque" class="tab-content">
+    <div class="tool-form">
+        <h2>必须转矩计算</h2>
+        <p class="formula-info">公式: T = (T<sub>S</sub> + T<sub>L</sub>) × S</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于工程安全设计原则。必须转矩T = (T<sub>S</sub> + T<sub>L</sub>) × S，其中T<sub>S</sub>为电机轴加速转矩（克服惯量所需），T<sub>L</sub>为负载转矩（克服负载所需，分度盘机构通常为0），S为安全系数。安全系数用于考虑计算误差、参数变化、负载波动等因素，确保系统可靠运行。这是标准机械设计中的安全设计方法。<br>
+            <strong>适用范围：</strong>适用于分度盘机构选型计算，用于确定电机必须提供的转矩，确保系统能够可靠运行。
+        </p>
+        
+        <div class="form-group">
+            <label for="rt_TS">电机轴加速转矩 T<sub>S</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="rt_TS" step="0.0001" min="0" placeholder="例如: 从加速转矩计算中获得">
+        </div>
+        
+        <div class="form-group">
+            <label for="rt_TL">负载转矩 T<sub>L</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="rt_TL" step="0.0001" min="0" value="0" placeholder="例如: 0">
+        </div>
+        
+        <div class="form-group">
+            <label for="rt_S">安全系数 S <span class="required">*</span></label>
+            <input type="number" id="rt_S" step="0.1" min="0.1" value="2" placeholder="例如: 2">
+            <small>通常范围: 1-2</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateRequiredTorque()">计算</button>
+        
+        <div id="rt_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">必须转矩 T: <span id="rt_result_value"></span> <span id="rt_result_unit"></span></div>
+            <div class="result-formula" id="rt_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 6. 惯量比 -->
+<div id="inertia_ratio" class="tab-content">
+    <div class="tool-form">
+        <h2>负荷与电机惯量比计算</h2>
+        <p class="formula-info">公式: N<sub>1</sub> = (J<sub>L</sub>/(i<sup>2</sup>)) / J<sub>M</sub></p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于伺服系统惯量匹配理论。惯量比N<sub>1</sub> = (J<sub>L</sub>/(i<sup>2</sup>)) / J<sub>M</sub>表示折算到电机轴的负载惯量与电机惯量的比值，用于评估系统的动态响应性能。其中J<sub>L</sub>为全负载惯量，通过减速比i<sup>2</sup>折算到电机轴。当惯量比过大时，系统响应变慢，定位精度下降，可能出现振荡；当惯量比过小时，电机功率利用率低。通常建议N<sub>1</sub> ≤ 5，这是基于大量工程实践总结的经验值，确保系统具有良好的动态响应和稳定性。这是标准伺服系统设计理论。<br>
+            <strong>适用范围：</strong>适用于分度盘机构选型计算，用于评估负载与电机的惯量匹配情况，确保系统具有良好的动态性能。
+        </p>
+        
+        <div class="form-group">
+            <label for="ir_JL">全负载惯量 J<sub>L</sub> (kg·m²) <span class="required">*</span></label>
+            <input type="number" id="ir_JL" step="any" min="0.000001" placeholder="例如: 从加速转矩计算中获得">
+        </div>
+        
+        <div class="form-group">
+            <label for="ir_i">减速机减速比 i <span class="required">*</span></label>
+            <input type="number" id="ir_i" step="any" min="0.1" value="5" placeholder="例如: 5">
+        </div>
+        
+        <div class="form-group">
+            <label for="ir_JM">电机惯量 J<sub>M</sub> (kg·m²) <span class="required">*</span></label>
+            <input type="number" id="ir_JM" step="any" min="0.0001" value="0.00014" placeholder="例如: 0.00014">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateInertiaRatio()">计算</button>
+        
+        <div id="ir_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">惯量比 N<sub>1</sub>: <span id="ir_result_value"></span></div>
+            <div class="result-formula" id="ir_result_formula"></div>
+            <div id="ir_warning" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/tools/indexing_table.js"></script>
+{% endblock %}
+

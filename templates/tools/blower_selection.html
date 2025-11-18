@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}鼓风机选型计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>鼓风机选型计算</h1>
+    <p class="subtitle">计算高炉鼓风机选型所需的各项参数，包括风压、风量、修正系数和轴功率</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">压力参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">P<sub>d</sub></td><td style="padding: 0.3rem 0;">高炉炉顶压力(MPa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">ΔP<sub>1</sub></td><td style="padding: 0.3rem 0;">高炉送风系统阻力(MPa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">ΔP<sub>f</sub></td><td style="padding: 0.3rem 0;">高炉送风管路阻力(MPa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P<sub>0</sub></td><td style="padding: 0.3rem 0;">标准大气压(MPa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">ΔP<sub>x</sub></td><td style="padding: 0.3rem 0;">风机入口阻力(MPa)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">风量参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">V<sub>u</sub></td><td style="padding: 0.3rem 0;">高炉有效容积(m³)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">i</td><td style="padding: 0.3rem 0;">高炉利用系数(t/m³.d)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">q</td><td style="padding: 0.3rem 0;">单位生铁耗风量(m³/t)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">δ</td><td style="padding: 0.3rem 0;">高炉漏风率(%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">Q<sub>f</sub></td><td style="padding: 0.3rem 0;">高炉送风管路漏风量(m³/h)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">修正系数与功率参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">P<sub>X</sub></td><td style="padding: 0.3rem 0;">风机入口实际大气压(Pa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">T<sub>0</sub></td><td style="padding: 0.3rem 0;">标准温度(K)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">T<sub>a</sub></td><td style="padding: 0.3rem 0;">风机入口实际温度(K)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P<sub>Z</sub></td><td style="padding: 0.3rem 0;">风机入口水蒸气分压(Pa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P<sub>a</sub></td><td style="padding: 0.3rem 0;">风机入口大气压(Pa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">k</td><td style="padding: 0.3rem 0;">绝热指数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η<sub>n</sub></td><td style="padding: 0.3rem 0;">内效率</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η<sub>m</sub></td><td style="padding: 0.3rem 0;">机械效率</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 计算公式说明 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>计算公式</h2>
+    <p class="formula-info">高炉所需风压: P<sub>c</sub> = P<sub>d</sub> + ΔP<sub>1</sub> + ΔP<sub>f</sub></p>
+    <p class="formula-info">风机入口压力: P<sub>fx</sub> = P<sub>0</sub> - ΔP<sub>x</sub></p>
+    <p class="formula-info">风机出口风压: P<sub>h</sub> = P<sub>0</sub> + P<sub>c</sub></p>
+    <p class="formula-info">压比: ε = P<sub>h</sub> / P<sub>fx</sub></p>
+    <p class="formula-info">高炉入炉风量: Q<sub>g</sub> = V<sub>u</sub> × i × q / 1440</p>
+    <p class="formula-info">风机出口风量1: Q<sub>2</sub> = (1 + δ/100) × Q<sub>g</sub></p>
+    <p class="formula-info">风机出口风量2: Q<sub>3</sub> = Q<sub>2</sub> + Q<sub>f</sub></p>
+    <p class="formula-info">气压修正系数: K<sub>1</sub> = P<sub>X</sub> / P<sub>0</sub></p>
+    <p class="formula-info">气温修正系数: K<sub>2</sub> = T<sub>0</sub> / T<sub>a</sub></p>
+    <p class="formula-info">湿度修正系数: K<sub>3</sub> = 1 - P<sub>Z</sub> / P<sub>a</sub></p>
+    <p class="formula-info">风量修正系数: K = K<sub>1</sub> × K<sub>2</sub> × K<sub>3</sub></p>
+    <p class="formula-info">实际送风量: Q = Q<sub>3</sub> / K / 60</p>
+    <p class="formula-info">鼓风机轴功率: N<sub>e</sub> = 101937 × P<sub>fx</sub> × Q × (ε^(1/k) - 1) / 6120 / η<sub>n</sub> / η<sub>m</sub></p>
+    <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1.5rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+        <strong>物理来源：</strong>基于高炉鼓风机选型计算的工程经验公式。高炉所需风压P<sub>c</sub> = P<sub>d</sub> + ΔP<sub>1</sub> + ΔP<sub>f</sub>，考虑了高炉炉顶压力、送风系统阻力和送风管路阻力。风机入口压力P<sub>fx</sub> = P<sub>0</sub> - ΔP<sub>x</sub>，考虑了标准大气压和入口阻力损失。风机出口风压P<sub>h</sub> = P<sub>0</sub> + P<sub>c</sub>，为风机需要提供的总压力。压比ε = P<sub>h</sub> / P<sub>fx</sub>，是鼓风机选型的关键参数。高炉入炉风量Q<sub>g</sub> = V<sub>u</sub> × i × q / 1440，基于高炉有效容积、利用系数和单位生铁耗风量计算，1440为一天的小时数。风机出口风量考虑了漏风率的影响：Q<sub>2</sub> = (1 + δ/100) × Q<sub>g</sub>，Q<sub>3</sub> = Q<sub>2</sub> + Q<sub>f</sub>。风量修正系数考虑了气压、气温和湿度的影响：K<sub>1</sub> = P<sub>X</sub> / P<sub>0</sub>（气压修正），K<sub>2</sub> = T<sub>0</sub> / T<sub>a</sub>（气温修正），K<sub>3</sub> = 1 - P<sub>Z</sub> / P<sub>a</sub>（湿度修正），K = K<sub>1</sub> × K<sub>2</sub> × K<sub>3</sub>。实际送风量Q = Q<sub>3</sub> / K / 60，将m³/h转换为m³/min。鼓风机轴功率N<sub>e</sub> = 101937 × P<sub>fx</sub> × Q × (ε^(1/k) - 1) / 6120 / η<sub>n</sub> / η<sub>m</sub>，基于等熵压缩理论，其中k为绝热指数，η<sub>n</sub>为内效率，η<sub>m</sub>为机械效率，系数101937和6120为工程经验修正值。<br>
+        <strong>适用范围：</strong>适用于高炉鼓风机选型计算，用于确定鼓风机的风压、风量和轴功率等关键参数。适用于标准大气条件下的空气介质，温度范围通常在0°C至100°C之间。适用于高炉送风系统的设计和选型，需要考虑实际运行条件（气压、温度、湿度）对风机性能的影响。注意：这些公式为工程经验公式，实际应用中可能存在一定误差，建议结合风机厂家提供的性能曲线进行验证。适用于高炉鼓风机选型、性能评估、系统设计和运行优化的初步计算。
+    </p>
+</div>
+
+<!-- 输入表单 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>输入参数</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+        <!-- 压力参数 -->
+        <div class="form-group">
+            <label for="Pd">高炉炉顶压力 P<sub>d</sub> (MPa) <span class="required">*</span></label>
+            <input type="number" id="Pd" step="0.0001" min="0" value="0.2" placeholder="例如: 0.2">
+        </div>
+        
+        <div class="form-group">
+            <label for="delta_P1">高炉送风系统阻力 ΔP<sub>1</sub> (MPa) <span class="required">*</span></label>
+            <input type="number" id="delta_P1" step="0.0001" min="0" value="0.15" placeholder="例如: 0.15">
+        </div>
+        
+        <div class="form-group">
+            <label for="delta_Pf">高炉送风管路阻力 ΔP<sub>f</sub> (MPa) <span class="required">*</span></label>
+            <input type="number" id="delta_Pf" step="0.0001" min="0" value="0.03" placeholder="例如: 0.03">
+        </div>
+        
+        <div class="form-group">
+            <label for="P0">标准大气压 P<sub>0</sub> (MPa) <span class="required">*</span></label>
+            <input type="number" id="P0" step="0.0001" min="0" value="0.101325" placeholder="例如: 0.101325">
+            <small>标准值: 0.101325 MPa</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="delta_Px">风机入口阻力 ΔP<sub>x</sub> (MPa)</label>
+            <input type="number" id="delta_Px" step="0.0001" min="0" value="0.003" placeholder="例如: 0.003">
+        </div>
+        
+        <!-- 风量参数 -->
+        <div class="form-group">
+            <label for="Vu">高炉有效容积 V<sub>u</sub> (m³) <span class="required">*</span></label>
+            <input type="number" id="Vu" step="1" min="1" value="1350" placeholder="例如: 1350">
+        </div>
+        
+        <div class="form-group">
+            <label for="i">高炉利用系数 i (t/m³.d) <span class="required">*</span></label>
+            <input type="number" id="i" step="0.01" min="0.01" value="1.26" placeholder="例如: 1.26">
+        </div>
+        
+        <div class="form-group">
+            <label for="q">单位生铁耗风量 q (m³/t) <span class="required">*</span></label>
+            <input type="number" id="q" step="1" min="1" value="2400" placeholder="例如: 2400">
+        </div>
+        
+        <div class="form-group">
+            <label for="delta">高炉漏风率 δ (%) <span class="required">*</span></label>
+            <input type="number" id="delta" step="0.01" min="0" max="100" value="3" placeholder="例如: 3">
+        </div>
+        
+        <div class="form-group">
+            <label for="Qf">高炉送风管路漏风量 Q<sub>f</sub> (m³/h)</label>
+            <input type="number" id="Qf" step="1" min="0" value="300" placeholder="例如: 300">
+        </div>
+        
+        <!-- 修正系数参数 -->
+        <div class="form-group">
+            <label for="PX">风机入口实际大气压 P<sub>X</sub> (Pa) <span class="required">*</span></label>
+            <input type="number" id="PX" step="1" min="1" value="99770" placeholder="例如: 99770">
+            <small>标准大气压: 101325 Pa</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="T0">标准温度 T<sub>0</sub> (K) <span class="required">*</span></label>
+            <input type="number" id="T0" step="0.1" min="1" value="273" placeholder="例如: 273">
+            <small>标准值: 273 K (0°C)</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="Ta">风机入口实际温度 T<sub>a</sub> (K) <span class="required">*</span></label>
+            <input type="number" id="Ta" step="0.1" min="1" value="308" placeholder="例如: 308">
+            <small>例如: 308 K (35°C)</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="PZ">风机入口水蒸气分压 P<sub>Z</sub> (Pa) <span class="required">*</span></label>
+            <input type="number" id="PZ" step="0.1" min="0" value="5157" placeholder="例如: 5157">
+        </div>
+        
+        <div class="form-group">
+            <label for="Pa">风机入口大气压 P<sub>a</sub> (Pa) <span class="required">*</span></label>
+            <input type="number" id="Pa" step="1" min="1" value="102770" placeholder="例如: 102770">
+        </div>
+        
+        <!-- 功率计算参数 -->
+        <div class="form-group">
+            <label for="k">绝热指数 k <span class="required">*</span></label>
+            <input type="number" id="k" step="0.01" min="1.01" value="1.4" placeholder="例如: 1.4">
+            <small>空气: 1.4</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="eta_n">内效率 η<sub>n</sub> <span class="required">*</span></label>
+            <input type="number" id="eta_n" step="0.01" min="0.01" max="1" value="0.98" placeholder="例如: 0.98">
+        </div>
+        
+        <div class="form-group">
+            <label for="eta_m">机械效率 η<sub>m</sub> <span class="required">*</span></label>
+            <input type="number" id="eta_m" step="0.01" min="0.01" max="1" value="0.95" placeholder="例如: 0.95">
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; text-align: center;">
+        <button type="button" class="btn btn-primary" onclick="calculateBlowerSelection()">计算</button>
+        <button type="button" class="btn btn-secondary" onclick="resetForm()" style="margin-left: 1rem;">重置</button>
+    </div>
+</div>
+
+<!-- 结果显示 -->
+<div id="result-container" class="result-container" style="display: none;">
+    <h2>计算结果</h2>
+    <div id="result-content"></div>
+</div>
+
+<script src="/static/js/tools/blower_selection.js"></script>
+{% endblock %}
+

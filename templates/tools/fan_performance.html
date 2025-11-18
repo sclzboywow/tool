@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}风机性能表 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>风机性能表</h1>
+    <p class="subtitle">计算风机性能参数，包括压力、流量、内功率，并绘制流量-压力曲线和流量-效率曲线</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">D</td><td style="padding: 0.3rem 0;">叶轮直径(m)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">n</td><td style="padding: 0.3rem 0;">主轴转速(rpm)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">T</td><td style="padding: 0.3rem 0;">介质温度(°C)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P<sub>inlet</sub></td><td style="padding: 0.3rem 0;">进口大气压(Pa)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">ρ</td><td style="padding: 0.3rem 0;">空气密度(kg/m³)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">ψ<sub>p</sub></td><td style="padding: 0.3rem 0;">压力系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">φ</td><td style="padding: 0.3rem 0;">流量系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η</td><td style="padding: 0.3rem 0;">效率</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">计算结果</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">P</td><td style="padding: 0.3rem 0;">压力(Pa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">Q</td><td style="padding: 0.3rem 0;">流量(m³/h)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P<sub>internal</sub></td><td style="padding: 0.3rem 0;">内功率(kW)</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 主要参数输入 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>主要参数</h2>
+    <p class="formula-info">空气密度: ρ = 1.2 × P<sub>inlet</sub> / 101325 × 293 / (273 + T)</p>
+    <p class="formula-info">压力: P = 101300 × ((ρ × (π×D×n/60)² × ψ<sub>p</sub> / 354550 + 1)^3.5 - 1)</p>
+    <p class="formula-info">流量: Q = 900 × π × D² × (π×D×n/60) × φ</p>
+    <p class="formula-info">内功率: P<sub>internal</sub> = P × Q / 3600 / η / 1000</p>
+    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1.5rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+        <strong>物理来源：</strong>基于理想气体状态方程、流体力学和风机相似理论。空气密度ρ = 1.2 × P<sub>inlet</sub> / 101325 × 293 / (273 + T)，基于理想气体状态方程PV=nRT的简化形式，其中1.2为标准空气密度（kg/m³），101325为标准大气压（Pa），293为标准温度（20°C，K），有理论依据。压力P = 101300 × ((ρ × (π×D×n/60)² × ψ<sub>p</sub> / 354550 + 1)^3.5 - 1)，基于等熵压缩原理，其中u = π×D×n/60为叶轮圆周速度（m/s），ψ<sub>p</sub>为压力系数（通过实验获得），系数354550和等熵指数3.5为经验修正值（等熵指数3.5接近空气的等熵指数，但354550为经验系数），101300为参考压力（Pa）。流量Q = 900 × π × D² × (π×D×n/60) × φ，基于风机相似理论和连续性方程，其中φ为流量系数（通过实验获得），系数900用于单位换算（将m³/s转换为m³/h）。内功率P<sub>internal</sub> = P × Q / 3600 / η / 1000，基于流体功率定义P=Q×P/η，其中η为风机效率（通过实验获得），3600和1000为换算系数。注意：公式中的压力系数ψ<sub>p</sub>、流量系数φ和效率η需要通过实验获得，这些参数反映了风机的实际性能特性。<br>
+        <strong>适用范围：</strong>适用于离心风机、轴流风机等各类风机的性能估算，用于确定风机在不同工况下的压力、流量和内功率。适用于标准大气条件下的空气介质，温度范围通常在-20°C至150°C之间。压力系数ψ<sub>p</sub>和流量系数φ需要根据风机的具体型号和性能曲线确定，通常由风机厂家提供或通过实验测量获得。公式基于流体力学理论，但包含经验修正系数，实际应用时建议结合风机厂家提供的性能曲线进行验证。适用于风机选型、性能评估、系统设计和运行优化的初步计算。
+    </p>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+        <div class="form-group">
+            <label for="D">叶轮直径 D (m) <span class="required">*</span></label>
+            <input type="number" id="D" step="0.01" min="0.01" value="1.2" placeholder="例如: 1.2">
+        </div>
+        
+        <div class="form-group">
+            <label for="n">主轴转速 n (rpm) <span class="required">*</span></label>
+            <input type="number" id="n" step="1" min="1" value="1500" placeholder="例如: 1500">
+        </div>
+        
+        <div class="form-group">
+            <label for="T">介质温度 T (°C) <span class="required">*</span></label>
+            <input type="number" id="T" step="0.1" value="70" placeholder="例如: 70">
+        </div>
+        
+        <div class="form-group">
+            <label for="P_inlet">进口大气压 P<sub>inlet</sub> (Pa) <span class="required">*</span></label>
+            <input type="number" id="P_inlet" step="1" min="1" value="101325" placeholder="例如: 101325">
+            <small>标准大气压: 101325 Pa</small>
+        </div>
+    </div>
+</div>
+
+<!-- 性能点输入 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>性能点数据</h2>
+    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+        输入多个性能点的压力系数、流量系数和效率，系统将自动计算每个点的压力、流量和内功率，并绘制性能曲线。
+    </p>
+    
+    <div id="performance-points-container">
+        <!-- 性能点将通过JavaScript动态添加 -->
+    </div>
+    
+    <div style="margin-top: 1rem;">
+        <button type="button" class="btn btn-secondary" onclick="addPerformancePoint()" style="margin-right: 0.5rem;">添加性能点</button>
+        <button type="button" class="btn btn-secondary" onclick="clearPerformancePoints()">清空所有</button>
+    </div>
+</div>
+
+<!-- 计算按钮 -->
+<div style="text-align: center; margin-bottom: 2rem;">
+    <button class="btn btn-primary" onclick="calculateFanPerformance()" style="padding: 0.75rem 2rem; font-size: 1.1rem;">计算风机性能</button>
+</div>
+
+<!-- 计算结果 -->
+<div id="result-container" style="display: none;">
+    <!-- 结果表格 -->
+    <div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2>计算结果</h2>
+        <div id="result-table-container"></div>
+    </div>
+    
+    <!-- 性能曲线图 -->
+    <div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2>性能曲线</h2>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+            <!-- 流量-压力曲线 -->
+            <div>
+                <h3 style="margin-bottom: 1rem; color: #2c3e50;">流量-压力曲线</h3>
+                <canvas id="pressureChart" style="max-height: 400px;"></canvas>
+            </div>
+            
+            <!-- 流量-效率曲线 -->
+            <div>
+                <h3 style="margin-bottom: 1rem; color: #2c3e50;">流量-效率曲线</h3>
+                <canvas id="efficiencyChart" style="max-height: 400px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.required {
+    color: #e74c3c;
+}
+
+.formula-info {
+    background: #ecf0f1;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    font-family: 'Courier New', monospace;
+}
+
+.performance-point {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: end;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.performance-point .form-group {
+    margin-bottom: 0;
+}
+
+.remove-point-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.remove-point-btn:hover {
+    background: #c82333;
+}
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.result-table th,
+.result-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.result-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.result-table tr:hover {
+    background: #f8f9fa;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/static/js/tools/fan_performance.js"></script>
+{% endblock %}
+

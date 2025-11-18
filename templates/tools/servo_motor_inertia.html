@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}伺服电机惯量计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>伺服电机惯量计算</h1>
+    <p class="subtitle">齿轮齿条传动的伺服电机惯量计算，包括快速移动、切削和惯量匹配计算</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列：基本参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">基本参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">M</td><td style="padding: 0.3rem 0;">被移动件的质量 (kg)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">v<sub>fast</sub></td><td style="padding: 0.3rem 0;">快移速度 (m/min)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">t<sub>acc</sub></td><td style="padding: 0.3rem 0;">加速时间 (s)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">a</td><td style="padding: 0.3rem 0;">加速度 (m/s²)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">u</td><td style="padding: 0.3rem 0;">摩擦系数</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列：齿轮参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">齿轮参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">m</td><td style="padding: 0.3rem 0;">齿轮模数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">Z</td><td style="padding: 0.3rem 0;">齿轮齿数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">D</td><td style="padding: 0.3rem 0;">分度圆直径 (m)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η</td><td style="padding: 0.3rem 0;">传动效率</td></tr>
+                <tr><td style="padding: 0.3rem 0;">J<sub>G</sub></td><td style="padding: 0.3rem 0;">齿轮自身惯量 (kg·m²)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列：电机和减速机参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">电机和减速机参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">i</td><td style="padding: 0.3rem 0;">减速比</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η<sub>reducer</sub></td><td style="padding: 0.3rem 0;">减速机效率</td></tr>
+                <tr><td style="padding: 0.3rem 0;">J<sub>m</sub></td><td style="padding: 0.3rem 0;">电机自身转动惯量 (kg·m²)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">J<sub>g</sub></td><td style="padding: 0.3rem 0;">减速机自身惯量 (kg·m²)</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 计算公式说明 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>计算公式</h2>
+    <p class="formula-info">加速力: F<sub>a</sub> = M × a</p>
+    <p class="formula-info">摩擦力: F<sub>f</sub> = M × g × u</p>
+    <p class="formula-info">合力矩: T<sub>req</sub> = F<sub>total</sub> × D/2 / η + T<sub>G</sub></p>
+    <p class="formula-info">电机总输出力矩: T<sub>m1</sub> = T<sub>2</sub> + T<sub>m</sub></p>
+    <p class="formula-info">负载惯量: J<sub>L</sub> = M × D² / 4</p>
+    <p class="formula-info">惯量匹配值: λ = J<sub>2</sub> / J<sub>m</sub></p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1.5rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于牛顿力学、刚体动力学和转动惯量理论。加速力F<sub>a</sub> = M×a，基于牛顿第二定律F=ma。摩擦力F<sub>f</sub> = M×g×μ，基于摩擦力公式f=μN。合力矩T<sub>req</sub> = F<sub>total</sub>×D/2/η + T<sub>G</sub>，基于力矩定义T=Fr和传动效率。电机角加速度β<sub>m</sub> = β<sub>G</sub>×i，基于角速度与减速比的关系。电机克服自身惯量的力矩T<sub>m</sub> = J<sub>m</sub>×β<sub>m</sub>，基于转动定律T=Jα。负载惯量J<sub>L</sub> = M×D²/4，基于转动惯量定义J=mr²，将直线运动质量等效为旋转惯量。惯量匹配值λ = J<sub>2</sub>/J<sub>m</sub>，用于评估电机选型的合理性，通常λ应小于10（工程经验值）。侧倾力矩计算基于力的分解和力矩平衡原理，F<sub>2rmax</sub> = F<sub>total</sub>/cos(a<sub>n</sub>)，F<sub>2amax</sub> = F<sub>total</sub>×tan(a<sub>0</sub>)，基于力的分解原理。<br>
+            <strong>适用范围：</strong>适用于齿轮齿条传动的伺服电机选型计算，用于确定电机所需的力矩和惯量匹配参数。适用于水平或垂直运动系统，需要考虑摩擦、加速和切削等工况。公式基于经典力学理论，惯量匹配值λ<10为工程经验建议。
+        </p>
+</div>
+
+<!-- 输入表单 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>输入参数</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+        <!-- 基本参数 -->
+        <div class="form-group">
+            <label for="M">被移动件的质量 M (kg) <span class="required">*</span></label>
+            <input type="number" id="M" step="0.1" min="0.1" value="2000" placeholder="例如: 2000">
+        </div>
+        
+        <div class="form-group">
+            <label for="v_fast">快移速度 v<sub>fast</sub> (m/min) <span class="required">*</span></label>
+            <input type="number" id="v_fast" step="0.1" min="0.1" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="t_acc">加速时间 t<sub>acc</sub> (s) <span class="required">*</span></label>
+            <input type="number" id="t_acc" step="0.01" min="0.01" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="a">加速度 a (m/s²) <span class="required">*</span></label>
+            <input type="number" id="a" step="0.1" min="0.1" value="10" placeholder="例如: 10">
+        </div>
+        
+        <div class="form-group">
+            <label for="u">摩擦系数 u</label>
+            <input type="number" id="u" step="0.01" min="0" max="1" value="0.1" placeholder="例如: 0.1">
+        </div>
+        
+        <div class="form-group">
+            <label for="is_vertical">运动方向</label>
+            <select id="is_vertical">
+                <option value="false">水平运动</option>
+                <option value="true">垂直运动</option>
+            </select>
+        </div>
+        
+        <!-- 切削参数（可选） -->
+        <div class="form-group">
+            <label for="FC">最大切削抗力 F<sub>C</sub> (N)</label>
+            <input type="number" id="FC" step="0.1" min="0" value="0" placeholder="例如: 0">
+        </div>
+        
+        <div class="form-group">
+            <label for="v_cut">最大抗力时的速度 v<sub>cut</sub> (m/min)</label>
+            <input type="number" id="v_cut" step="0.1" min="0" value="0" placeholder="例如: 0">
+        </div>
+        
+        <!-- 齿轮参数 -->
+        <div class="form-group">
+            <label for="m_gear">齿轮模数 m <span class="required">*</span></label>
+            <input type="number" id="m_gear" step="0.1" min="0.1" value="3" placeholder="例如: 3">
+        </div>
+        
+        <div class="form-group">
+            <label for="Z">齿轮齿数 Z <span class="required">*</span></label>
+            <input type="number" id="Z" step="1" min="1" value="20" placeholder="例如: 20">
+        </div>
+        
+        <div class="form-group">
+            <label for="D">齿轮分度圆直径 D (m) <span class="required">*</span></label>
+            <input type="number" id="D" step="0.0001" min="0.0001" value="0.06048" placeholder="例如: 0.06048">
+        </div>
+        
+        <div class="form-group">
+            <label for="eta">传动效率 η</label>
+            <input type="number" id="eta" step="0.01" min="0" max="1" value="0.98" placeholder="例如: 0.98">
+        </div>
+        
+        <div class="form-group">
+            <label for="JG">齿轮自身惯量 J<sub>G</sub> (kg·m²)</label>
+            <input type="number" id="JG" step="0.0001" min="0" value="0" placeholder="例如: 0">
+        </div>
+        
+        <!-- 减速机和电机参数 -->
+        <div class="form-group">
+            <label for="i">减速比 i <span class="required">*</span></label>
+            <input type="number" id="i" step="0.1" min="0.1" value="16" placeholder="例如: 16">
+        </div>
+        
+        <div class="form-group">
+            <label for="eta_reducer">减速机效率 η<sub>reducer</sub></label>
+            <input type="number" id="eta_reducer" step="0.01" min="0" max="1" value="0.8" placeholder="例如: 0.8">
+        </div>
+        
+        <div class="form-group">
+            <label for="Jm">电机自身转动惯量 J<sub>m</sub> (kg·m²) <span class="required">*</span></label>
+            <input type="number" id="Jm" step="0.0001" min="0.0001" value="0.0036" placeholder="例如: 0.0036">
+            <small>用于快速移动计算</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="Jm_inertia">用于惯量匹配的电机惯量 J<sub>m</sub> (kg·m²)</label>
+            <input type="number" id="Jm_inertia" step="0.0001" min="0.0001" value="0.0061" placeholder="例如: 0.0061">
+            <small>留空则使用上面的Jm</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="Jg">减速机自身惯量 J<sub>g</sub> (kg·m²)</label>
+            <input type="number" id="Jg" step="0.0001" min="0" value="0.0006" placeholder="例如: 0.0006">
+        </div>
+        
+        <div class="form-group">
+            <label for="g">重力加速度 g (m/s²)</label>
+            <input type="number" id="g" step="0.1" min="0.1" value="9.8" placeholder="例如: 9.8">
+        </div>
+        
+        <!-- 侧倾力矩计算参数 -->
+        <div class="form-group">
+            <label for="an">齿轮端面压力角 a<sub>n</sub> (度)</label>
+            <input type="number" id="an" step="0.01" min="0" max="90" value="21.116" placeholder="例如: 21.116">
+        </div>
+        
+        <div class="form-group">
+            <label for="a0">斜角 a<sub>0</sub> (度)</label>
+            <input type="number" id="a0" step="0.01" min="0" max="90" value="19.5283" placeholder="例如: 19.5283">
+        </div>
+        
+        <div class="form-group">
+            <label for="Z2">减速器输出端轴承的支撑跨度 Z<sub>2</sub> (m)</label>
+            <input type="number" id="Z2" step="0.0001" min="0.0001" value="0.0812" placeholder="例如: 0.0812">
+        </div>
+        
+        <div class="form-group">
+            <label for="X2">齿轮受力 X<sub>2</sub> (mm)</label>
+            <input type="number" id="X2" step="0.1" min="0" value="15.5" placeholder="例如: 15.5">
+        </div>
+        
+        <div class="form-group">
+            <label for="y2">轴向力的力臂长 y<sub>2</sub> (m)</label>
+            <input type="number" id="y2" step="0.0001" min="0.0001" value="0.089127" placeholder="例如: 0.089127">
+            <small>由齿轮半径和安装位置决定</small>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <button onclick="calculate()" class="btn btn-primary">计算</button>
+        <button onclick="resetForm()" class="btn btn-secondary">重置</button>
+    </div>
+</div>
+
+<!-- 结果显示 -->
+<div id="result-container" class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none;">
+    <h2>计算结果</h2>
+    <div id="result-content"></div>
+</div>
+
+<script src="/static/js/tools/servo_motor_inertia.js"></script>
+{% endblock %}
+

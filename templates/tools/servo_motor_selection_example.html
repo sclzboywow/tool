@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}伺服电机选型举例 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>伺服电机选型举例</h1>
+    <p class="subtitle">基于滚珠丝杠传动的伺服电机选型计算，包括惯量计算、转矩计算、转数计算和电机选型验证等完整流程</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列：①机械系统的决定 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">①机械系统的决定</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">M</td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">负载质量 (kg)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">P</td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">滚珠丝杠节距 (mm)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">D</td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">滚珠丝杠直径 (mm)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">M<sub>B</sub></td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">滚珠丝杠质量 (kg)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">μ</td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">滚珠丝杠摩擦系数</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">G</td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">减速比（无减速器时为1）</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">η</td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">效率（无减速器时为1）</td>
+                </tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列：②动作模式的决定 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">②动作模式的决定</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">V</td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">负载移动速度 (mm/s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">L</td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">行程 (mm)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">t<sub>S</sub></td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">行程时间 (s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">t<sub>A</sub></td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">加减速时间 (s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">AP</td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">定位精度 (mm)</td>
+                </tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列：电机参数（可选） -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">电机参数（可选，用于验证）</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">J<sub>M</sub></td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">电机转子惯量 (kg·m²)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">T<sub>M</sub></td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">电机额定转矩 (N·m)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">T<sub>max</sub></td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">电机瞬时最大转矩 (N·m)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.3rem 0; color: #2c3e50; font-weight: 500;">N<sub>max</sub></td>
+                    <td style="padding: 0.3rem 0; color: #7f8c8d;">电机额定转数 (r/min)</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 计算表单 -->
+<div class="tool-form">
+    <h2>伺服电机选型计算</h2>
+    
+    <!-- 公式说明 -->
+    <p class="formula-info">③换算到电机轴负载惯量：J<sub>B</sub> = M<sub>B</sub> × D² / 8 × 10⁻⁶</p>
+    <p class="formula-info">J<sub>W</sub> = M × (P/(2π))² × 10⁻⁶ + J<sub>B</sub></p>
+    <p class="formula-info">J<sub>L</sub> = G² × J<sub>W</sub></p>
+    <p class="formula-info">④负载转矩：T<sub>w</sub> = μ × M × g × D / (2π) × 10⁻³</p>
+    <p class="formula-info">T<sub>L</sub> = T<sub>w</sub> / (G × η)</p>
+    <p class="formula-info">⑤转数：N = 60 × V / (P × G)</p>
+    <p class="formula-info">⑦加减速转矩：T<sub>A</sub> = (2π × N / (60 × t<sub>A</sub>)) × (J<sub>M</sub> + J<sub>L</sub> / η)</p>
+    <p class="formula-info">⑧瞬时最大转矩：T<sub>1</sub> = T<sub>A</sub> + T<sub>L</sub>, T<sub>2</sub> = T<sub>L</sub>, T<sub>3</sub> = T<sub>L</sub> - T<sub>A</sub></p>
+    <p class="formula-info">有效转矩：T<sub>rms</sub> = √(T<sub>1</sub>²×t<sub>1</sub> + T<sub>2</sub>²×t<sub>2</sub> + T<sub>3</sub>²×t<sub>3</sub> / (t<sub>1</sub> + t<sub>2</sub> + t<sub>3</sub> + t<sub>4</sub>))</p>
+    
+    <!-- 物理来源和适用范围说明 -->
+    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+        <strong>物理来源：</strong>基于滚珠丝杠传动的伺服电机选型理论。滚珠丝杠惯量J<sub>B</sub> = M<sub>B</sub> × D² / 8 × 10⁻⁶，基于圆柱体转动惯量公式。负载惯量J<sub>W</sub> = M × (P/(2π))² × 10⁻⁶ + J<sub>B</sub>，将直线运动质量折算为转动惯量。换算到电机轴负载惯量J<sub>L</sub> = G² × J<sub>W</sub>，通过减速比平方折算。负载转矩T<sub>w</sub> = μ × M × g × D / (2π) × 10⁻³，基于摩擦力矩计算。加减速转矩T<sub>A</sub> = (2π × N / (60 × t<sub>A</sub>)) × (J<sub>M</sub> + J<sub>L</sub> / η)，基于角加速度和总惯量。有效转矩T<sub>rms</sub>基于均方根计算，反映实际工作转矩。这是标准伺服电机选型理论。<br>
+        <strong>适用范围：</strong>适用于滚珠丝杠传动的伺服电机选型，包括水平、垂直和倾斜运动系统。适用于需要精确位置控制的自动化设备。
+    </p>
+    
+    <!-- ①机械系统的决定 -->
+    <h3 style="color: #2c3e50; margin-top: 2rem; margin-bottom: 1rem;">①机械系统的决定</h3>
+    
+    <div class="form-group">
+        <label for="M">负载质量 M (kg) <span class="required">*</span></label>
+        <input type="number" id="M" step="any" min="0.000001" placeholder="例如: 10">
+    </div>
+    
+    <div class="form-group">
+        <label for="P">滚珠丝杠节距 P (mm) <span class="required">*</span></label>
+        <input type="number" id="P" step="any" min="0.000001" placeholder="例如: 5">
+    </div>
+    
+    <div class="form-group">
+        <label for="D">滚珠丝杠直径 D (mm) <span class="required">*</span></label>
+        <input type="number" id="D" step="any" min="0.000001" placeholder="例如: 10">
+    </div>
+    
+    <div class="form-group">
+        <label for="MB">滚珠丝杠质量 M<sub>B</sub> (kg) <span class="required">*</span></label>
+        <input type="number" id="MB" step="any" min="0.000001" placeholder="例如: 1">
+    </div>
+    
+    <div class="form-group">
+        <label for="mu">滚珠丝杠摩擦系数 μ <span class="required">*</span></label>
+        <input type="number" id="mu" step="any" min="0" value="0.1" placeholder="例如: 0.1">
+    </div>
+    
+    <div class="form-group">
+        <label for="G">减速比 G <span class="required">*</span></label>
+        <input type="number" id="G" step="any" min="0.000001" value="1" placeholder="例如: 1（无减速器时）">
+        <small>无减速器时填1</small>
+    </div>
+    
+    <div class="form-group">
+        <label for="eta">效率 η <span class="required">*</span></label>
+        <input type="number" id="eta" step="any" min="0.000001" max="1" value="1" placeholder="例如: 1（无减速器时）">
+        <small>无减速器时填1</small>
+    </div>
+    
+    <!-- ②动作模式的决定 -->
+    <h3 style="color: #2c3e50; margin-top: 2rem; margin-bottom: 1rem;">②动作模式的决定</h3>
+    
+    <div class="form-group">
+        <label for="V">负载移动速度 V (mm/s) <span class="required">*</span></label>
+        <input type="number" id="V" step="any" min="0.000001" placeholder="例如: 200">
+    </div>
+    
+    <div class="form-group">
+        <label for="L">行程 L (mm) <span class="required">*</span></label>
+        <input type="number" id="L" step="any" min="0.000001" placeholder="例如: 400">
+    </div>
+    
+    <div class="form-group">
+        <label for="tS">行程时间 t<sub>S</sub> (s) <span class="required">*</span></label>
+        <input type="number" id="tS" step="any" min="0.000001" placeholder="例如: 1.4">
+    </div>
+    
+    <div class="form-group">
+        <label for="tA">加减速时间 t<sub>A</sub> (s) <span class="required">*</span></label>
+        <input type="number" id="tA" step="any" min="0.000001" placeholder="例如: 0.2">
+        <small>行程时间必须 ≥ 2 × 加减速时间</small>
+    </div>
+    
+    <div class="form-group">
+        <label for="AP">定位精度 AP (mm) <span class="required">*</span></label>
+        <input type="number" id="AP" step="any" min="0.000001" placeholder="例如: 0.01">
+    </div>
+    
+    <!-- 电机参数（可选） -->
+    <h3 style="color: #2c3e50; margin-top: 2rem; margin-bottom: 1rem;">电机参数（可选，用于验证）</h3>
+    
+    <div class="form-group">
+        <label for="JM">电机转子惯量 J<sub>M</sub> (kg·m²)</label>
+        <input type="number" id="JM" step="any" min="0.000001" placeholder="例如: 1.23e-05">
+        <small>如果填写，将用于计算加减速转矩和验证</small>
+    </div>
+    
+    <div class="form-group">
+        <label for="TM">电机额定转矩 T<sub>M</sub> (N·m)</label>
+        <input type="number" id="TM" step="any" min="0.000001" placeholder="例如: 0.637">
+        <small>如果填写，将用于验证有效转矩</small>
+    </div>
+    
+    <div class="form-group">
+        <label for="Tmax_motor">电机瞬时最大转矩 T<sub>max</sub> (N·m)</label>
+        <input type="number" id="Tmax_motor" step="any" min="0.000001" placeholder="例如: 1.91">
+        <small>如果填写，将用于验证瞬时最大转矩</small>
+    </div>
+    
+    <div class="form-group">
+        <label for="Nmax_motor">电机额定转数 N<sub>max</sub> (r/min)</label>
+        <input type="number" id="Nmax_motor" step="any" min="0.000001" placeholder="例如: 3000">
+        <small>如果填写，将用于验证转数</small>
+    </div>
+    
+    <!-- 计算按钮 -->
+    <button class="btn btn-primary" onclick="calculate()">计算</button>
+    
+    <!-- 结果显示 -->
+    <div id="result" class="result-box" style="display: none;">
+        <h3>计算结果</h3>
+        <div class="result-value">有效转矩 T<sub>rms</sub>: <span id="result_value"></span> <span id="result_unit"></span></div>
+        <div class="result-formula" id="result_formula"></div>
+    </div>
+</div>
+
+<script src="/static/js/tools/servo_motor_selection_example.js"></script>
+{% endblock %}
+

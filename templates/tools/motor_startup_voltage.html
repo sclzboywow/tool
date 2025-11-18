@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}电动机启动时端电压计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>电动机启动时端电压计算 ⊿U<sub>qd</sub></h1>
+    <p class="subtitle">计算电动机启动时的端电压降，包括变压器低压母线上的三相短路容量和电动机启动电压计算</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">K<sub>iq</sub></td><td style="padding: 0.3rem 0;">启动电流倍数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">S<sub>ed</sub></td><td style="padding: 0.3rem 0;">启动电动机额定容量(kVA)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">S<sub>jh</sub></td><td style="padding: 0.3rem 0;">变压器低压侧其他负荷容量(kVA)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">S<sub>eb</sub></td><td style="padding: 0.3rem 0;">变压器额定容量(kVA)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">u<sub>k</sub></td><td style="padding: 0.3rem 0;">变压器阻抗电压(%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P<sub>ed</sub></td><td style="padding: 0.3rem 0;">电动机额定功率(kW)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">L</td><td style="padding: 0.3rem 0;">线路长度(km)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">⊿U<sub>x</sub></td><td style="padding: 0.3rem 0;">每千瓦公里单位电压损失(%)</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 计算表单 -->
+<div class="tool-form">
+    <h2>电动机启动时端电压计算</h2>
+    <p class="formula-info">变压器低压母线上的三相短路容量: S<sub>dm</sub> = 100 × S<sub>eb</sub> / u<sub>k</sub></p>
+    <p class="formula-info">电动机启动电压降: ⊿U<sub>qm</sub> = 100(K<sub>iq</sub>×S<sub>ed</sub> + S<sub>jh</sub>) / S<sub>dm</sub> + K<sub>iq</sub>×P<sub>ed</sub>×L×⊿U<sub>x</sub></p>
+    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+        <strong>物理来源：</strong>基于电力系统短路容量计算和电压降理论。变压器低压母线上的三相短路容量S<sub>dm</sub> = 100×S<sub>eb</sub>/u<sub>k</sub>，反映了系统的短路能力，其中S<sub>eb</sub>为变压器额定容量，u<sub>k</sub>为变压器阻抗电压。电动机启动电压降⊿U<sub>qm</sub> = 100(K<sub>iq</sub>×S<sub>ed</sub> + S<sub>jh</sub>)/S<sub>dm</sub> + K<sub>iq</sub>×P<sub>ed</sub>×L×⊿U<sub>x</sub>包括两部分：第一部分是启动电流在变压器阻抗上产生的电压降，第二部分是启动电流在线路阻抗上产生的电压降。这是标准电力系统计算理论，依据国家标准GB/T 12325-2008《电能质量 供电电压偏差》。<br>
+        <strong>适用范围：</strong>适用于电动机启动时的端电压计算，用于评估启动时电压降是否在允许范围内。通常要求启动时端电压降不超过15-20%，以确保电动机能够正常启动。
+    </p>
+    
+    <div class="form-group">
+        <label for="Kiq">启动电流倍数 K<sub>iq</sub> <span class="required">*</span></label>
+        <input type="number" id="Kiq" step="0.1" min="0.1" value="3" placeholder="例如: 3">
+    </div>
+    
+    <div class="form-group">
+        <label for="Sed">启动电动机额定容量 S<sub>ed</sub> (kVA) <span class="required">*</span></label>
+        <input type="number" id="Sed" step="0.1" min="0.1" value="132" placeholder="例如: 132">
+    </div>
+    
+    <div class="form-group">
+        <label for="Sjh">变压器低压侧其他负荷容量 S<sub>jh</sub> (kVA) <span class="required">*</span></label>
+        <input type="number" id="Sjh" step="0.1" min="0" value="150" placeholder="例如: 150">
+    </div>
+    
+    <div class="form-group">
+        <label for="Seb">变压器额定容量 S<sub>eb</sub> (kVA) <span class="required">*</span></label>
+        <input type="number" id="Seb" step="1" min="1" value="315" placeholder="例如: 315">
+    </div>
+    
+    <div class="form-group">
+        <label for="uk">变压器阻抗电压 u<sub>k</sub> (%) <span class="required">*</span></label>
+        <input type="number" id="uk" step="0.1" min="0.1" value="4" placeholder="例如: 4">
+    </div>
+    
+    <div class="form-group">
+        <label for="Ped">电动机额定功率 P<sub>ed</sub> (kW) <span class="required">*</span></label>
+        <input type="number" id="Ped" step="0.1" min="0.1" value="100" placeholder="例如: 100">
+    </div>
+    
+    <div class="form-group">
+        <label for="L">线路长度 L (km) <span class="required">*</span></label>
+        <input type="number" id="L" step="0.01" min="0.01" value="0.2" placeholder="例如: 0.2">
+    </div>
+    
+    <div class="form-group">
+        <label for="deltaUx">每千瓦公里单位电压损失 ⊿U<sub>x</sub> (%) <span class="required">*</span></label>
+        <input type="number" id="deltaUx" step="0.01" min="0" value="0.2" placeholder="例如: 0.2">
+    </div>
+    
+    <button class="btn btn-primary" onclick="calculateMotorStartupVoltage()">计算</button>
+    
+    <div id="result" class="result-box" style="display: none;">
+        <h3>计算结果</h3>
+        <div class="result-value">变压器低压母线上的三相短路容量 S<sub>dm</sub>: <span id="Sdm_value"></span> kVA</div>
+        <div class="result-value">电动机启动电压降 ⊿U<sub>qm</sub>: <span id="result_value"></span> <span id="result_unit"></span></div>
+        <div class="result-formula" id="result_formula"></div>
+    </div>
+</div>
+
+<script src="/static/js/tools/motor_startup_voltage.js"></script>
+{% endblock %}
+

@@ -1,0 +1,583 @@
+{% extends "base.html" %}
+
+{% block title %}履带机器人驱动力计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>履带机器人驱动力计算</h1>
+    <p class="subtitle">计算履带机器人的驱动力、功率、扭矩等参数，包括功率计算、扭矩计算、加速扭矩计算、越障计算、原地回转计算、减速器校验和速度计算</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列：道路参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">道路参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">f</td><td style="padding: 0.3rem 0;">滚动摩擦系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">u</td><td style="padding: 0.3rem 0;">滑动摩擦系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">peak_attachment</td><td style="padding: 0.3rem 0;">地面峰值附着系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">slope_percent</td><td style="padding: 0.3rem 0;">轨道坡度(%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">obstacle_height</td><td style="padding: 0.3rem 0;">障碍高度(mm)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列：车体参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">车体参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">m<sub>1</sub></td><td style="padding: 0.3rem 0;">车体重量(kg)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">m<sub>2</sub></td><td style="padding: 0.3rem 0;">负载重量(kg)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">D</td><td style="padding: 0.3rem 0;">履带轮子直径(mm)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">D<sub>drive</sub></td><td style="padding: 0.3rem 0;">履带驱动轮直径(mm)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">B</td><td style="padding: 0.3rem 0;">履带间距（左右）(mm)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">L</td><td style="padding: 0.3rem 0;">接地长度（前后）(mm)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列：运行/电机/减速器参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">运行/电机/减速器参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">v<sub>rated</sub></td><td style="padding: 0.3rem 0;">平地车体额定速度(m/s)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">v<sub>max</sub></td><td style="padding: 0.3rem 0;">平地车体最大速度(m/s)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">a</td><td style="padding: 0.3rem 0;">运行加速度(m/s²)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">n<sub>effective</sub></td><td style="padding: 0.3rem 0;">有效电机数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P<sub>motor</sub></td><td style="padding: 0.3rem 0;">电机功率(W)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">i<sub>total</sub></td><td style="padding: 0.3rem 0;">总减速比</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项，详细参数说明请参考Excel表格</span>
+    </div>
+</div>
+
+<!-- 标签页 -->
+<div class="sub-tabs-container">
+    <div id="sub-tabs-crawler" class="sub-tabs active">
+        <button class="sub-tab active" onclick="switchSubTab('power_calc')">1. 功率计算</button>
+        <button class="sub-tab" onclick="switchSubTab('torque_calc')">2. 扭矩计算</button>
+        <button class="sub-tab" onclick="switchSubTab('acceleration_torque_calc')">3. 加速扭矩计算</button>
+        <button class="sub-tab" onclick="switchSubTab('obstacle_calc')">4. 越障计算</button>
+        <button class="sub-tab" onclick="switchSubTab('rotation_calc')">5. 原地回转计算</button>
+        <button class="sub-tab" onclick="switchSubTab('reducer_check')">6. 减速器校验</button>
+        <button class="sub-tab" onclick="switchSubTab('speed_calc')">7. 速度计算</button>
+    </div>
+</div>
+
+<!-- 1. 功率计算 -->
+<div id="power_calc" class="tab-content active">
+    <div class="tool-form">
+        <h2>功率计算</h2>
+        <p class="formula-info">整车平地行走所需功率: P<sub>1</sub> = f×(m<sub>1</sub>+m<sub>2</sub>)×10×v</p>
+        <p class="formula-info">整车坡度行走所需功率: P<sub>2</sub> = f×(m<sub>1</sub>+m<sub>2</sub>)×cos(θ)×10×v + (m<sub>1</sub>+m<sub>2</sub>)×sin(θ)×10×v</p>
+        <p class="formula-info">整车电机提供有效功率: P<sub>3</sub> = n×P<sub>motor</sub></p>
+        <p class="formula-info">行走功率安全系数: K<sub>1</sub> = P<sub>3</sub>/P<sub>2</sub> (需≥1.2)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于功率平衡原理和履带机器人运动学。整车平地行走所需功率P<sub>1</sub> = f×(m<sub>1</sub>+m<sub>2</sub>)×10×v，其中f为滚动摩擦系数，m<sub>1</sub>+m<sub>2</sub>为总质量，10为重力加速度(m/s²)，v为速度。整车坡度行走所需功率P<sub>2</sub>包括滚动摩擦功率f×(m<sub>1</sub>+m<sub>2</sub>)×cos(θ)×10×v和重力分量功率(m<sub>1</sub>+m<sub>2</sub>)×sin(θ)×10×v。整车电机提供有效功率P<sub>3</sub> = n×P<sub>motor</sub>，其中n为有效电机数。行走功率安全系数K<sub>1</sub>用于评估电机功率是否满足要求，通常需≥1.2。这是标准履带机器人功率计算理论。<br>
+            <strong>适用范围：</strong>适用于履带机器人行走系统的功率计算，用于评估电机功率是否满足平地行走和坡度行走的要求。
+        </p>
+        
+        <div class="form-group">
+            <label for="pc_f">滚动摩擦系数 f <span class="required">*</span></label>
+            <input type="number" id="pc_f" step="0.01" min="0" value="0.11" placeholder="例如: 0.11">
+        </div>
+        
+        <div class="form-group">
+            <label for="pc_m1">车体重量 m<sub>1</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="pc_m1" step="0.1" min="0.1" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="pc_m2">负载重量 m<sub>2</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="pc_m2" step="0.1" min="0" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="pc_v_rated">平地车体额定速度 v<sub>rated</sub> (m/s) <span class="required">*</span></label>
+            <input type="number" id="pc_v_rated" step="0.01" min="0.01" value="0.4" placeholder="例如: 0.4">
+        </div>
+        
+        <div class="form-group">
+            <label for="pc_slope_percent">轨道坡度 slope_percent (%) <span class="required">*</span></label>
+            <input type="number" id="pc_slope_percent" step="0.1" min="0" value="55" placeholder="例如: 55">
+        </div>
+        
+        <div class="form-group">
+            <label for="pc_n_effective">有效电机数 n<sub>effective</sub> <span class="required">*</span></label>
+            <input type="number" id="pc_n_effective" step="1" min="1" value="2" placeholder="例如: 2">
+        </div>
+        
+        <div class="form-group">
+            <label for="pc_P_motor">电机功率 P<sub>motor</sub> (W) <span class="required">*</span></label>
+            <input type="number" id="pc_P_motor" step="1" min="1" value="250" placeholder="例如: 250">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculatePower()">计算</button>
+        
+        <div id="pc_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">整车平地行走所需功率 P<sub>1</sub>: <span id="pc_P1_value"></span> W</div>
+            <div class="result-value">整车坡度行走所需功率 P<sub>2</sub>: <span id="pc_P2_value"></span> W</div>
+            <div class="result-value">整车电机提供有效功率 P<sub>3</sub>: <span id="pc_P3_value"></span> W</div>
+            <div class="result-value">行走功率安全系数 K<sub>1</sub>: <span id="pc_result_value"></span></div>
+            <div class="result-formula" id="pc_result_formula"></div>
+            <div id="pc_warning" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. 扭矩计算 -->
+<div id="torque_calc" class="tab-content">
+    <div class="tool-form">
+        <h2>扭矩计算</h2>
+        <p class="formula-info">整车平地所需行走扭矩: T<sub>1</sub> = f×(m<sub>1</sub>+m<sub>2</sub>)×10×D/2000</p>
+        <p class="formula-info">整车坡道所需行走扭矩: T<sub>2</sub> = f×(m<sub>1</sub>+m<sub>2</sub>)×cos(θ)×10×D/2000 + (m<sub>1</sub>+m<sub>2</sub>)×sin(θ)×10×D/2000</p>
+        <p class="formula-info">整车电机额定输出扭矩: T<sub>3</sub> = T<sub>actual</sub>×i×n</p>
+        <p class="formula-info">行走额定扭矩安全系数: K<sub>2</sub> = T<sub>3</sub>/T<sub>2</sub> (需≥1.2)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于扭矩平衡原理和履带机器人动力学。整车平地所需行走扭矩T<sub>1</sub> = f×(m<sub>1</sub>+m<sub>2</sub>)×10×D/2000，其中D为履带轮子直径(mm)，除以2000转换为m并计算扭矩。整车坡道所需行走扭矩T<sub>2</sub>包括滚动摩擦扭矩和重力分量扭矩。实际扭矩T<sub>actual</sub> = (I<sub>actual</sub>-I<sub>no_load</sub>)/I<sub>rated</sub>×T<sub>rated</sub>，基于电流与扭矩的线性关系。整车电机额定输出扭矩T<sub>3</sub> = T<sub>actual</sub>×i×n，通过减速比i和有效电机数n放大。行走额定扭矩安全系数K<sub>2</sub>用于评估电机扭矩是否满足要求，通常需≥1.2。这是标准履带机器人扭矩计算理论。<br>
+            <strong>适用范围：</strong>适用于履带机器人行走系统的扭矩计算，用于评估电机扭矩是否满足平地行走和坡道行走的要求。
+        </p>
+        
+        <div class="form-group">
+            <label for="tc_f">滚动摩擦系数 f <span class="required">*</span></label>
+            <input type="number" id="tc_f" step="0.01" min="0" value="0.11" placeholder="例如: 0.11">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_m1">车体重量 m<sub>1</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="tc_m1" step="0.1" min="0.1" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_m2">负载重量 m<sub>2</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="tc_m2" step="0.1" min="0" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_D">履带轮子直径 D (mm) <span class="required">*</span></label>
+            <input type="number" id="tc_D" step="1" min="1" value="120" placeholder="例如: 120">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_slope_percent">轨道坡度 slope_percent (%) <span class="required">*</span></label>
+            <input type="number" id="tc_slope_percent" step="0.1" min="0" value="55" placeholder="例如: 55">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_I_actual">实际电流(平均) I<sub>actual</sub> (A) <span class="required">*</span></label>
+            <input type="number" id="tc_I_actual" step="0.1" min="0.1" value="9" placeholder="例如: 9">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_I_no_load">空转电流 I<sub>no_load</sub> (A) <span class="required">*</span></label>
+            <input type="number" id="tc_I_no_load" step="0.1" min="0" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_I_rated">额定电流 I<sub>rated</sub> (A) <span class="required">*</span></label>
+            <input type="number" id="tc_I_rated" step="0.1" min="0.1" value="9.1" placeholder="例如: 9.1">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_T_rated">额定扭矩 T<sub>rated</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="tc_T_rated" step="0.01" min="0.01" value="0.52" placeholder="例如: 0.52">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_i_total">总减速比 i<sub>total</sub> <span class="required">*</span></label>
+            <input type="number" id="tc_i_total" step="0.1" min="0.1" placeholder="例如: 1600 (i_custom×i_reducer)">
+        </div>
+        
+        <div class="form-group">
+            <label for="tc_n_effective">有效电机数 n<sub>effective</sub> <span class="required">*</span></label>
+            <input type="number" id="tc_n_effective" step="1" min="1" value="2" placeholder="例如: 2">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateTorque()">计算</button>
+        
+        <div id="tc_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">整车平地所需行走扭矩 T<sub>1</sub>: <span id="tc_T1_value"></span> Nm</div>
+            <div class="result-value">整车坡道所需行走扭矩 T<sub>2</sub>: <span id="tc_T2_value"></span> Nm</div>
+            <div class="result-value">整车电机额定输出扭矩 T<sub>3</sub>: <span id="tc_T3_value"></span> Nm</div>
+            <div class="result-value">行走额定扭矩安全系数 K<sub>2</sub>: <span id="tc_result_value"></span></div>
+            <div class="result-formula" id="tc_result_formula"></div>
+            <div id="tc_warning" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. 加速扭矩计算 -->
+<div id="acceleration_torque_calc" class="tab-content">
+    <div class="tool-form">
+        <h2>加速扭矩计算</h2>
+        <p class="formula-info">整车平地所需加速扭矩: T<sub>4</sub> = T<sub>1</sub> + (m<sub>1</sub>+m<sub>2</sub>)×a×D/2000</p>
+        <p class="formula-info">整车坡道所需加速扭矩: T<sub>5</sub> = T<sub>2</sub> + (m<sub>1</sub>+m<sub>2</sub>)×a<sub>slope</sub>×D/2000</p>
+        <p class="formula-info">整车电机最大输出扭矩: T<sub>6</sub> = T<sub>max</sub>×i×n×0.5</p>
+        <p class="formula-info">加速最大扭矩安全系数: K<sub>3</sub> = T<sub>6</sub>/T<sub>5</sub> (需≥1.2)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于牛顿第二定律和扭矩平衡原理。整车平地所需加速扭矩T<sub>4</sub> = T<sub>1</sub> + (m<sub>1</sub>+m<sub>2</sub>)×a×D/2000，包括行走扭矩和加速扭矩，其中a为运行加速度。整车坡道所需加速扭矩T<sub>5</sub> = T<sub>2</sub> + (m<sub>1</sub>+m<sub>2</sub>)×a<sub>slope</sub>×D/2000，包括坡道行走扭矩和坡道加速扭矩。整车电机最大输出扭矩T<sub>6</sub> = T<sub>max</sub>×i×n×0.5，其中0.5为安全系数，考虑电机最大扭矩的可靠性。加速最大扭矩安全系数K<sub>3</sub>用于评估电机最大扭矩是否满足加速要求，通常需≥1.2。这是标准履带机器人加速扭矩计算理论。<br>
+            <strong>适用范围：</strong>适用于履带机器人加速系统的扭矩计算，用于评估电机最大扭矩是否满足平地加速和坡道加速的要求。
+        </p>
+        
+        <div class="form-group">
+            <label for="atc_f">滚动摩擦系数 f <span class="required">*</span></label>
+            <input type="number" id="atc_f" step="0.01" min="0" value="0.11" placeholder="例如: 0.11">
+        </div>
+        
+        <div class="form-group">
+            <label for="atc_m1">车体重量 m<sub>1</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="atc_m1" step="0.1" min="0.1" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="atc_m2">负载重量 m<sub>2</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="atc_m2" step="0.1" min="0" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="atc_D">履带轮子直径 D (mm) <span class="required">*</span></label>
+            <input type="number" id="atc_D" step="1" min="1" value="120" placeholder="例如: 120">
+        </div>
+        
+        <div class="form-group">
+            <label for="atc_slope_percent">轨道坡度 slope_percent (%) <span class="required">*</span></label>
+            <input type="number" id="atc_slope_percent" step="0.1" min="0" value="55" placeholder="例如: 55">
+        </div>
+        
+        <div class="form-group">
+            <label for="atc_a">运行加速度 a (m/s²) <span class="required">*</span></label>
+            <input type="number" id="atc_a" step="0.01" min="0" value="0.3" placeholder="例如: 0.3">
+        </div>
+        
+        <div class="form-group">
+            <label for="atc_a_slope">坡道加速度 a<sub>slope</sub> (m/s²) <span class="required">*</span></label>
+            <input type="number" id="atc_a_slope" step="0.01" min="0" value="0.3" placeholder="例如: 0.3">
+        </div>
+        
+        <div class="form-group">
+            <label for="atc_T_max">最大扭矩 T<sub>max</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="atc_T_max" step="0.01" min="0.01" value="1.5" placeholder="例如: 1.5">
+        </div>
+        
+        <div class="form-group">
+            <label for="atc_i_total">总减速比 i<sub>total</sub> <span class="required">*</span></label>
+            <input type="number" id="atc_i_total" step="0.1" min="0.1" placeholder="例如: 1600">
+        </div>
+        
+        <div class="form-group">
+            <label for="atc_n_effective">有效电机数 n<sub>effective</sub> <span class="required">*</span></label>
+            <input type="number" id="atc_n_effective" step="1" min="1" value="2" placeholder="例如: 2">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateAccelerationTorque()">计算</button>
+        
+        <div id="atc_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">整车平地所需加速扭矩 T<sub>4</sub>: <span id="atc_T4_value"></span> Nm</div>
+            <div class="result-value">整车坡道所需加速扭矩 T<sub>5</sub>: <span id="atc_T5_value"></span> Nm</div>
+            <div class="result-value">整车电机最大输出扭矩 T<sub>6</sub>: <span id="atc_T6_value"></span> Nm</div>
+            <div class="result-value">加速最大扭矩安全系数 K<sub>3</sub>: <span id="atc_result_value"></span></div>
+            <div class="result-formula" id="atc_result_formula"></div>
+            <div id="atc_warning" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. 越障计算 -->
+<div id="obstacle_calc" class="tab-content">
+    <div class="tool-form">
+        <h2>越障计算</h2>
+        <p class="formula-info">越障附加扭矩: T<sub>7</sub> = (m<sub>1</sub>+m<sub>2</sub>)×g×h<sub>obstacle</sub>/(D×500) (精确模型) 或 T<sub>7</sub> = (m<sub>1</sub>+m<sub>2</sub>)×D/4000 (经验公式)</p>
+        <p class="formula-info">越障整车所需扭矩: T<sub>8</sub> = T<sub>7</sub> + T<sub>5</sub></p>
+        <p class="formula-info">越障整车电机最大扭矩: T<sub>9</sub> = T<sub>max</sub>×i×n×0.8</p>
+        <p class="formula-info">越障最大扭矩安全系数: K<sub>4</sub> = T<sub>9</sub>/T<sub>8</sub> (需≥1.2)</p>
+        <p class="formula-info">路面提供扭矩安全系数: K<sub>road</sub> = T<sub>road</sub>/T<sub>8</sub> (需≥1.2)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于履带机器人越障动力学理论。越障附加扭矩T<sub>7</sub>的计算采用改进的动力学模型：当提供障碍物高度h<sub>obstacle</sub>时，使用精确公式T<sub>7</sub> = (m<sub>1</sub>+m<sub>2</sub>)×g×h<sub>obstacle</sub>/(D×500)，该公式基于履带车辆越障时的几何关系，考虑障碍物高度和轮径的影响，通过重力在障碍物高度方向上的分量计算所需扭矩。如果未提供障碍物高度，则使用简化经验公式T<sub>7</sub> = (m<sub>1</sub>+m<sub>2</sub>)×D/4000（向后兼容）。越障整车所需扭矩T<sub>8</sub> = T<sub>7</sub> + T<sub>5</sub>，包括越障附加扭矩和坡道加速扭矩。越障整车电机最大扭矩T<sub>9</sub> = T<sub>max</sub>×i×n×0.8，其中0.8为越障时的安全系数，考虑电机在越障工况下的可靠性。整车路面提供的最大扭矩T<sub>road</sub> = peak_attachment×(m<sub>1</sub>+m<sub>2</sub>)×10×D/2000，基于地面峰值附着系数，反映路面的最大摩擦力，防止履带打滑。越障最大扭矩安全系数K<sub>4</sub>和路面提供扭矩安全系数K<sub>road</sub>用于评估越障能力，通常需≥1.2，确保系统有足够的余量应对实际工况的波动。<br>
+            <strong>适用范围：</strong>适用于履带机器人越障系统的扭矩计算，用于评估电机最大扭矩和路面附着力是否满足越障要求。精确模型适用于已知障碍物高度的场景，经验公式适用于快速估算或障碍物高度未知的情况。<br>
+            <strong>安全系数推荐值：</strong>K<sub>4</sub>和K<sub>road</sub>通常需≥1.2，对于重要应用或恶劣工况，建议≥1.5。
+        </p>
+        
+        <div class="form-group">
+            <label for="oc_m1">车体重量 m<sub>1</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="oc_m1" step="0.1" min="0.1" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_m2">负载重量 m<sub>2</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="oc_m2" step="0.1" min="0" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_D">履带轮子直径 D (mm) <span class="required">*</span></label>
+            <input type="number" id="oc_D" step="1" min="1" value="120" placeholder="例如: 120">
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_obstacle_height">障碍物高度 h<sub>obstacle</sub> (mm)</label>
+            <input type="number" id="oc_obstacle_height" step="1" min="0" value="165" placeholder="例如: 165 (可选，提供时使用精确模型)">
+            <small style="color: #7f8c8d; display: block; margin-top: 0.25rem;">如不提供，将使用经验公式 T<sub>7</sub> = m×D/4000</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_f">滚动摩擦系数 f <span class="required">*</span></label>
+            <input type="number" id="oc_f" step="0.01" min="0" value="0.11" placeholder="例如: 0.11">
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_slope_percent">轨道坡度 slope_percent (%) <span class="required">*</span></label>
+            <input type="number" id="oc_slope_percent" step="0.1" min="0" value="55" placeholder="例如: 55">
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_a_slope">坡道加速度 a<sub>slope</sub> (m/s²) <span class="required">*</span></label>
+            <input type="number" id="oc_a_slope" step="0.01" min="0" value="0.3" placeholder="例如: 0.3">
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_peak_attachment">地面峰值附着系数 peak_attachment <span class="required">*</span></label>
+            <input type="number" id="oc_peak_attachment" step="0.1" min="0.1" value="1.1" placeholder="例如: 1.1">
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_T_max">最大扭矩 T<sub>max</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="oc_T_max" step="0.01" min="0.01" value="1.5" placeholder="例如: 1.5">
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_i_total">总减速比 i<sub>total</sub> <span class="required">*</span></label>
+            <input type="number" id="oc_i_total" step="0.1" min="0.1" placeholder="例如: 1600">
+        </div>
+        
+        <div class="form-group">
+            <label for="oc_n_effective">有效电机数 n<sub>effective</sub> <span class="required">*</span></label>
+            <input type="number" id="oc_n_effective" step="1" min="1" value="2" placeholder="例如: 2">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateObstacle()">计算</button>
+        
+        <div id="oc_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">越障附加扭矩 T<sub>7</sub>: <span id="oc_T7_value"></span> Nm</div>
+            <div class="result-value">越障整车所需扭矩 T<sub>8</sub>: <span id="oc_T8_value"></span> Nm</div>
+            <div class="result-value">越障整车电机最大扭矩 T<sub>9</sub>: <span id="oc_T9_value"></span> Nm</div>
+            <div class="result-value">整车路面提供的最大扭矩 T<sub>road</sub>: <span id="oc_T_road_value"></span> Nm</div>
+            <div class="result-value">越障最大扭矩安全系数 K<sub>4</sub>: <span id="oc_result_value"></span></div>
+            <div class="result-value">路面提供扭矩安全系数 K<sub>road</sub>: <span id="oc_K_road_value"></span></div>
+            <div class="result-formula" id="oc_result_formula"></div>
+            <div id="oc_warning" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. 原地回转计算 -->
+<div id="rotation_calc" class="tab-content">
+    <div class="tool-form">
+        <h2>原地回转计算</h2>
+        <p class="formula-info">单履带阻力: F<sub>1</sub> = (m<sub>1</sub>+m<sub>2</sub>)×10×f/2 + u×(m<sub>1</sub>+m<sub>2</sub>)×10×L/(4×B)</p>
+        <p class="formula-info">单电机额定提供驱动力: F<sub>2</sub> = T<sub>actual</sub>×i/D<sub>drive</sub>×2000</p>
+        <p class="formula-info">原地回转扭矩安全系数: K<sub>5</sub> = F<sub>2</sub>/F<sub>1</sub> (需≥1.2)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于履带机器人原地回转动力学理论。单履带阻力F<sub>1</sub>包括两部分：第一部分(m<sub>1</sub>+m<sub>2</sub>)×10×f/2为滚动摩擦阻力，其中f为滚动摩擦系数，除以2表示单侧履带承受一半的重力；第二部分u×(m<sub>1</sub>+m<sub>2</sub>)×10×L/(4×B)为滑动摩擦阻力，其中u为滑动摩擦系数，L为接地长度（前后），B为履带间距（左右），几何系数L/(4×B)的推导基于履带车辆原地回转时的几何关系：当履带车辆原地回转时，履带与地面之间存在相对滑动，滑动阻力与履带接地面积和回转中心到履带边缘的距离有关，L/(4×B)反映了履带接地长度与间距的几何比例对滑动阻力的影响。单电机额定提供驱动力F<sub>2</sub> = T<sub>actual</sub>×i/D<sub>drive</sub>×2000，基于扭矩与力的关系T = F×r，其中T<sub>actual</sub>为实际扭矩，i为总减速比，D<sub>drive</sub>为履带驱动轮直径，2000用于单位转换（mm转m）。原地回转扭矩安全系数K<sub>5</sub>用于评估电机驱动力是否满足原地回转要求，通常需≥1.2，确保有足够的余量应对实际工况。<br>
+            <strong>适用范围：</strong>适用于履带机器人原地回转系统的驱动力计算，用于评估电机驱动力是否满足原地回转的要求。该模型假设履带与地面均匀接触，适用于标准履带车辆结构。<br>
+            <strong>安全系数推荐值：</strong>K<sub>5</sub>通常需≥1.2，对于重要应用或恶劣工况，建议≥1.5。
+        </p>
+        
+        <div class="form-group">
+            <label for="rc_m1">车体重量 m<sub>1</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="rc_m1" step="0.1" min="0.1" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_m2">负载重量 m<sub>2</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="rc_m2" step="0.1" min="0" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_f">滚动摩擦系数 f <span class="required">*</span></label>
+            <input type="number" id="rc_f" step="0.01" min="0" value="0.11" placeholder="例如: 0.11">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_u">滑动摩擦系数 u <span class="required">*</span></label>
+            <input type="number" id="rc_u" step="0.1" min="0" value="1.1" placeholder="例如: 1.1">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_L">接地长度（前后）L (mm) <span class="required">*</span></label>
+            <input type="number" id="rc_L" step="1" min="1" value="592" placeholder="例如: 592">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_B">履带间距（左右）B (mm) <span class="required">*</span></label>
+            <input type="number" id="rc_B" step="1" min="1" value="446" placeholder="例如: 446">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_I_actual">实际电流(平均) I<sub>actual</sub> (A) <span class="required">*</span></label>
+            <input type="number" id="rc_I_actual" step="0.1" min="0.1" value="9" placeholder="例如: 9">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_I_no_load">空转电流 I<sub>no_load</sub> (A) <span class="required">*</span></label>
+            <input type="number" id="rc_I_no_load" step="0.1" min="0" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_I_rated">额定电流 I<sub>rated</sub> (A) <span class="required">*</span></label>
+            <input type="number" id="rc_I_rated" step="0.1" min="0.1" value="9.1" placeholder="例如: 9.1">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_T_rated">额定扭矩 T<sub>rated</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="rc_T_rated" step="0.01" min="0.01" value="0.52" placeholder="例如: 0.52">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_i_total">总减速比 i<sub>total</sub> <span class="required">*</span></label>
+            <input type="number" id="rc_i_total" step="0.1" min="0.1" placeholder="例如: 1600">
+        </div>
+        
+        <div class="form-group">
+            <label for="rc_D_drive">履带驱动轮直径 D<sub>drive</sub> (mm) <span class="required">*</span></label>
+            <input type="number" id="rc_D_drive" step="1" min="1" value="120" placeholder="例如: 120">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateRotation()">计算</button>
+        
+        <div id="rc_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">单履带阻力 F<sub>1</sub>: <span id="rc_F1_value"></span> N</div>
+            <div class="result-value">单电机额定提供驱动力 F<sub>2</sub>: <span id="rc_F2_value"></span> N</div>
+            <div class="result-value">原地回转扭矩安全系数 K<sub>5</sub>: <span id="rc_result_value"></span></div>
+            <div class="result-formula" id="rc_result_formula"></div>
+            <div id="rc_warning" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 6. 减速器校验 -->
+<div id="reducer_check" class="tab-content">
+    <div class="tool-form">
+        <h2>减速器校验</h2>
+        <p class="formula-info">额定时，大齿轮输出扭矩: T<sub>gear_large_out</sub> = T<sub>actual</sub>×i<sub>reducer</sub>×i<sub>custom</sub></p>
+        <p class="formula-info">额定时，小齿轮输出扭矩: T<sub>gear_small_out</sub> = T<sub>actual</sub>×i<sub>reducer</sub></p>
+        <p class="formula-info">额定时，减速器输出扭矩: T<sub>reducer_out</sub> = T<sub>actual</sub>×i<sub>reducer</sub></p>
+        <p class="formula-info">大齿轮安全系数: K<sub>gear_large</sub> = T<sub>gear_large</sub>/T<sub>gear_large_out</sub> (需≥1.2)</p>
+        <p class="formula-info">小齿轮安全系数: K<sub>gear_small</sub> = T<sub>gear_small</sub>/T<sub>gear_small_out</sub> (需≥1.2)</p>
+        <p class="formula-info">减速器安全系数: K<sub>reducer</sub> = T<sub>reducer_rated</sub>/T<sub>reducer_out</sub> (需≥1.2)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于减速器传动理论和齿轮强度理论。额定时，大齿轮输出扭矩T<sub>gear_large_out</sub> = T<sub>actual</sub>×i<sub>reducer</sub>×i<sub>custom</sub>，通过减速器减速比i<sub>reducer</sub>和自制减速比i<sub>custom</sub>放大。额定时，小齿轮输出扭矩T<sub>gear_small_out</sub> = T<sub>actual</sub>×i<sub>reducer</sub>，仅通过减速器减速比放大。额定时，减速器输出扭矩T<sub>reducer_out</sub> = T<sub>actual</sub>×i<sub>reducer</sub>。大齿轮安全系数K<sub>gear_large</sub>、小齿轮安全系数K<sub>gear_small</sub>和减速器安全系数K<sub>reducer</sub>用于评估齿轮和减速器的强度是否满足要求，通常需≥1.2。这是标准减速器选型校验理论。<br>
+            <strong>适用范围：</strong>适用于履带机器人减速器系统的校验计算，用于评估齿轮和减速器的强度是否满足实际工作扭矩的要求。
+        </p>
+        
+        <div class="form-group">
+            <label for="rch_I_actual">实际电流(平均) I<sub>actual</sub> (A) <span class="required">*</span></label>
+            <input type="number" id="rch_I_actual" step="0.1" min="0.1" value="9" placeholder="例如: 9">
+        </div>
+        
+        <div class="form-group">
+            <label for="rch_I_no_load">空转电流 I<sub>no_load</sub> (A) <span class="required">*</span></label>
+            <input type="number" id="rch_I_no_load" step="0.1" min="0" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="rch_I_rated">额定电流 I<sub>rated</sub> (A) <span class="required">*</span></label>
+            <input type="number" id="rch_I_rated" step="0.1" min="0.1" value="9.1" placeholder="例如: 9.1">
+        </div>
+        
+        <div class="form-group">
+            <label for="rch_T_rated">额定扭矩 T<sub>rated</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="rch_T_rated" step="0.01" min="0.01" value="0.52" placeholder="例如: 0.52">
+        </div>
+        
+        <div class="form-group">
+            <label for="rch_i_reducer">减速器减速比 i<sub>reducer</sub> <span class="required">*</span></label>
+            <input type="number" id="rch_i_reducer" step="0.1" min="0.1" value="64" placeholder="例如: 64">
+        </div>
+        
+        <div class="form-group">
+            <label for="rch_i_custom">自制减速比 i<sub>custom</sub> <span class="required">*</span></label>
+            <input type="number" id="rch_i_custom" step="0.1" min="0.1" placeholder="例如: 25 (gear_large/gear_small)">
+        </div>
+        
+        <div class="form-group">
+            <label for="rch_T_gear_large">大齿轮许用扭矩 T<sub>gear_large</sub> (Nm)</label>
+            <input type="number" id="rch_T_gear_large" step="0.1" min="0.1" placeholder="例如: 可选">
+        </div>
+        
+        <div class="form-group">
+            <label for="rch_T_gear_small">小齿轮许用扭矩 T<sub>gear_small</sub> (Nm)</label>
+            <input type="number" id="rch_T_gear_small" step="0.1" min="0.1" placeholder="例如: 可选">
+        </div>
+        
+        <div class="form-group">
+            <label for="rch_T_reducer_rated">减速器额定扭矩 T<sub>reducer_rated</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="rch_T_reducer_rated" step="0.1" min="0.1" value="35" placeholder="例如: 35">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateReducerCheck()">计算</button>
+        
+        <div id="rch_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">额定时，大齿轮输出扭矩 T<sub>gear_large_out</sub>: <span id="rch_T_gear_large_out_value"></span> Nm</div>
+            <div class="result-value">额定时，小齿轮输出扭矩 T<sub>gear_small_out</sub>: <span id="rch_T_gear_small_out_value"></span> Nm</div>
+            <div class="result-value">额定时，减速器输出扭矩 T<sub>reducer_out</sub>: <span id="rch_T_reducer_out_value"></span> Nm</div>
+            <div class="result-value">大齿轮安全系数 K<sub>gear_large</sub>: <span id="rch_K_gear_large_value"></span></div>
+            <div class="result-value">小齿轮安全系数 K<sub>gear_small</sub>: <span id="rch_K_gear_small_value"></span></div>
+            <div class="result-value">减速器安全系数 K<sub>reducer</sub>: <span id="rch_result_value"></span></div>
+            <div class="result-formula" id="rch_result_formula"></div>
+            <div id="rch_warning" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 7. 速度计算 -->
+<div id="speed_calc" class="tab-content">
+    <div class="tool-form">
+        <h2>速度计算</h2>
+        <p class="formula-info">平地（坡道）额定速度: v<sub>rated_calc</sub> = n<sub>rated</sub>/60/i<sub>total</sub>×π×D/1000</p>
+        <p class="formula-info">平地（坡道）最大速度: v<sub>max_calc</sub> = n<sub>max</sub>/60/i<sub>total</sub>×π×D/1000</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于履带机器人运动学关系。平地（坡道）额定速度v<sub>rated_calc</sub> = n<sub>rated</sub>/60/i<sub>total</sub>×π×D/1000，其中n<sub>rated</sub>为电机额定转速(rpm)，除以60转换为rps，除以总减速比i<sub>total</sub>得到履带轮转速，乘以π×D得到线速度，除以1000将mm转换为m。平地（坡道）最大速度v<sub>max_calc</sub> = n<sub>max</sub>/60/i<sub>total</sub>×π×D/1000，使用电机最高转速n<sub>max</sub>。这是标准履带机器人速度计算理论。<br>
+            <strong>适用范围：</strong>适用于履带机器人速度系统的计算，用于根据电机转速、减速比和履带轮直径确定机器人的实际行走速度。
+        </p>
+        
+        <div class="form-group">
+            <label for="sc_n_rated">额定转速 n<sub>rated</sub> (rpm) <span class="required">*</span></label>
+            <input type="number" id="sc_n_rated" step="1" min="1" value="4700" placeholder="例如: 4700">
+        </div>
+        
+        <div class="form-group">
+            <label for="sc_n_max">最高转速 n<sub>max</sub> (rpm) <span class="required">*</span></label>
+            <input type="number" id="sc_n_max" step="1" min="1" value="5500" placeholder="例如: 5500">
+        </div>
+        
+        <div class="form-group">
+            <label for="sc_i_total">总减速比 i<sub>total</sub> <span class="required">*</span></label>
+            <input type="number" id="sc_i_total" step="0.1" min="0.1" placeholder="例如: 1600">
+        </div>
+        
+        <div class="form-group">
+            <label for="sc_D">履带轮子直径 D (mm) <span class="required">*</span></label>
+            <input type="number" id="sc_D" step="1" min="1" value="120" placeholder="例如: 120">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateSpeed()">计算</button>
+        
+        <div id="sc_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">平地（坡道）额定速度 v<sub>rated_calc</sub>: <span id="sc_result_value"></span> <span id="sc_result_unit"></span></div>
+            <div class="result-value">平地（坡道）最大速度 v<sub>max_calc</sub>: <span id="sc_v_max_calc_value"></span> m/s</div>
+            <div class="result-formula" id="sc_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/tools/crawler_robot_force.js"></script>
+{% endblock %}

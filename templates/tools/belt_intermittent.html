@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+
+{% block title %}皮带轮间歇运动选型计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>皮带轮间歇运动选型计算</h1>
+    <p class="subtitle">计算皮带轮间歇运动系统的电机选型参数，包括速度曲线、电机转速、负荷转矩、加速转矩、必须转矩和惯量比等参数</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr; gap: 1.5rem; align-items: start;">
+        <!-- 左侧：机械结构参数说明 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">机械结构参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500; width: 80px;">m<sub>L</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">皮带与工作物总质量</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(kg)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">μ</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">滑动面摩擦系数</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">D</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">滚筒直径</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(m)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">m<sub>2</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">滚筒质量</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(kg)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">η</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">传送带和滚筒的机械效率</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">η<sub>G</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">减速机机械效率</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">i</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">减速比</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">t</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">每次定位时间</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">L</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">每次运动距离</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(m)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">A</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">加减速时间比</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">F<sub>A</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">外力</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(N)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">a</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">移动方向与水平轴夹角</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(°)</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- 中间分隔线 -->
+        <div style="background: #4caf50; width: 4px; height: 100%; border-radius: 2px;"></div>
+        
+        <!-- 右侧：其他常数和电机参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">其他常数</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">g</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem; text-align: right;">9.8 m/s²</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">π</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem; text-align: right;">3.1416</td>
+                </tr>
+            </table>
+            
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">电机参数</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">S</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">安全系数</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(通常1-2)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #2c3e50; font-weight: 500;">J<sub>M</sub></td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.95rem;">电机惯量</td>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem; text-align: right;">(kg·m²)</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 底部说明 -->
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 标签页 -->
+<div class="sub-tabs-container">
+    <div id="sub-tabs-belt" class="sub-tabs active">
+        <button class="sub-tab active" onclick="switchSubTab('speed_curve')">1. 速度曲线</button>
+        <button class="sub-tab" onclick="switchSubTab('motor_speed')">2. 电机转速</button>
+        <button class="sub-tab" onclick="switchSubTab('load_torque')">3. 负载转矩</button>
+        <button class="sub-tab" onclick="switchSubTab('acceleration_torque')">4. 加速转矩</button>
+        <button class="sub-tab" onclick="switchSubTab('required_torque')">5. 必须转矩</button>
+        <button class="sub-tab" onclick="switchSubTab('inertia_ratio')">6. 惯量比</button>
+    </div>
+</div>
+
+<!-- 1. 速度曲线 -->
+<div id="speed_curve" class="tab-content active">
+    <div class="tool-form">
+        <h2>速度曲线 - 加速时间计算</h2>
+        <p class="formula-info">公式: t<sub>0</sub> = t × A</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于运动学中的速度曲线分析。在梯形速度曲线中，定位时间t由加速时间、匀速时间和减速时间组成。加减速时间比A表示加速时间占定位时间的比例，因此加速时间t<sub>0</sub> = t × A。这是标准运动控制理论。<br>
+            <strong>适用范围：</strong>适用于梯形速度曲线的运动控制系统，用于计算加速阶段所需的时间。
+        </p>
+        
+        <div class="form-group">
+            <label for="sc_t">定位时间 t (s) <span class="required">*</span></label>
+            <input type="number" id="sc_t" step="0.01" min="0.01" placeholder="例如: 1.0">
+        </div>
+        
+        <div class="form-group">
+            <label for="sc_A">加减速时间比 A <span class="required">*</span></label>
+            <input type="number" id="sc_A" step="0.01" min="0" max="1" value="0.25" placeholder="例如: 0.25">
+            <small>通常范围: 0-1</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateSpeedCurve()">计算</button>
+        
+        <div id="sc_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="sc_result_value"></span> <span id="sc_result_unit"></span></div>
+            <div class="result-formula" id="sc_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. 电机转速 -->
+<div id="motor_speed" class="tab-content">
+    <div class="tool-form">
+        <h2>电机转速计算</h2>
+        <p class="formula-info">减速机输出轴角加速度: β = 2×(L/D)/(t<sub>0</sub>×(t-t<sub>0</sub>))</p>
+        <p class="formula-info">减速机输出轴转速: N = (β×t<sub>0</sub>/(2π))×60</p>
+        <p class="formula-info">电机输出轴角加速度: β<sub>M</sub> = i×β</p>
+        <p class="formula-info">电机输出轴转速: N<sub>M</sub> = N×i</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于皮带轮传动的运动学关系。减速机输出轴角加速度β = 2×(L/D)/(t<sub>0</sub>×(t-t<sub>0</sub>))，基于梯形速度曲线和角加速度定义。减速机输出轴转速N = (β×t<sub>0</sub>/(2π))×60，将角速度转换为rpm。电机输出轴角加速度β<sub>M</sub> = i×β，通过减速比折算。电机输出轴转速N<sub>M</sub> = N×i，通过减速比放大。这是标准皮带轮传动和减速机理论。<br>
+            <strong>适用范围：</strong>适用于皮带轮间歇运动系统，用于根据运动距离、时间和减速比确定电机转速。
+        </p>
+        
+        <div class="form-group">
+            <label for="ms_L">每次运动距离 L (m) <span class="required">*</span></label>
+            <input type="number" id="ms_L" step="0.0001" min="0.0001" placeholder="例如: 0.09">
+        </div>
+        
+        <div class="form-group">
+            <label for="ms_D">滚筒直径 D (m) <span class="required">*</span></label>
+            <input type="number" id="ms_D" step="0.0001" min="0.0001" placeholder="例如: 0.052">
+        </div>
+        
+        <div class="form-group">
+            <label for="ms_t">每次定位时间 t (s) <span class="required">*</span></label>
+            <input type="number" id="ms_t" step="0.01" min="0.01" placeholder="例如: 0.07">
+        </div>
+        
+        <div class="form-group">
+            <label for="ms_t0">加速时间 t<sub>0</sub> (s) <span class="required">*</span></label>
+            <input type="number" id="ms_t0" step="0.01" min="0.01" placeholder="例如: 0.035">
+        </div>
+        
+        <div class="form-group">
+            <label for="ms_i">减速比 i <span class="required">*</span></label>
+            <input type="number" id="ms_i" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateMotorSpeed()">计算</button>
+        
+        <div id="ms_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">减速机输出轴角加速度 β: <span id="ms_beta_value"></span> rad/s²</div>
+            <div class="result-value">减速机输出轴转速 N: <span id="ms_N_value"></span> rpm</div>
+            <div class="result-value">电机输出轴角加速度 β<sub>M</sub>: <span id="ms_betaM_value"></span> rad/s²</div>
+            <div class="result-value">电机输出轴转速 N<sub>M</sub>: <span id="ms_result_value"></span> <span id="ms_result_unit"></span></div>
+            <div class="result-formula" id="ms_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. 负载转矩计算 -->
+<div id="load_torque" class="tab-content">
+    <div class="tool-form">
+        <h2>负载转矩计算</h2>
+        <p class="formula-info">减速机轴向负载: F = F<sub>A</sub> + m<sub>L</sub>×g×(sin a + μ×cos a)</p>
+        <p class="formula-info">减速机轴负载转矩: T<sub>L</sub> = (F × D) / (2 × η)</p>
+        <p class="formula-info">电机轴负载转矩: T<sub>LM</sub> = T<sub>L</sub> / (i × η<sub>G</sub>)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于牛顿第二定律和皮带轮传动的力学关系。减速机轴向负载F由外力F<sub>A</sub>、重力分量m<sub>L</sub>×g×sin a（沿运动方向）和摩擦力m<sub>L</sub>×g×μ×cos a（垂直于运动方向）组成，即F = F<sub>A</sub> + m<sub>L</sub>×g×(sin a + μ×cos a)。减速机轴负载转矩T<sub>L</sub> = (F × D) / (2 × η)，基于皮带轮传动的能量转换关系，其中D为滚筒直径，η为传送带和滚筒的机械效率。电机轴负载转矩T<sub>LM</sub> = T<sub>L</sub> / (i × η<sub>G</sub>)，通过减速比和减速机效率折算到电机轴。这是标准皮带轮传动和减速机理论。<br>
+            <strong>适用范围：</strong>适用于皮带轮间歇运动系统，考虑重力、摩擦和机械效率的负载转矩计算。
+        </p>
+        
+        <div class="form-group">
+            <label for="lt_FA">外力 F<sub>A</sub> (N) <span class="required">*</span></label>
+            <input type="number" id="lt_FA" step="0.01" min="0" value="0" placeholder="例如: 0">
+        </div>
+        
+        <div class="form-group">
+            <label for="lt_mL">皮带与工作物总质量 m<sub>L</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="lt_mL" step="0.01" min="0.01" placeholder="例如: 0.5">
+        </div>
+        
+        <div class="form-group">
+            <label for="lt_a">移动方向与水平轴夹角 a (°) <span class="required">*</span></label>
+            <input type="number" id="lt_a" step="0.1" min="-90" max="90" value="0" placeholder="例如: 0">
+        </div>
+        
+        <div class="form-group">
+            <label for="lt_mu">滑动面摩擦系数 μ <span class="required">*</span></label>
+            <input type="number" id="lt_mu" step="0.01" min="0" value="0.3" placeholder="例如: 0.3">
+        </div>
+        
+        <div class="form-group">
+            <label for="lt_D">滚筒直径 D (m) <span class="required">*</span></label>
+            <input type="number" id="lt_D" step="0.0001" min="0.0001" placeholder="例如: 0.052">
+        </div>
+        
+        <div class="form-group">
+            <label for="lt_eta">传送带和滚筒的机械效率 η <span class="required">*</span></label>
+            <input type="number" id="lt_eta" step="0.01" min="0" max="1" value="0.9" placeholder="例如: 0.9">
+        </div>
+        
+        <div class="form-group">
+            <label for="lt_i">减速比 i <span class="required">*</span></label>
+            <input type="number" id="lt_i" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="lt_etaG">减速机机械效率 η<sub>G</sub> <span class="required">*</span></label>
+            <input type="number" id="lt_etaG" step="0.01" min="0" max="1" value="0.7" placeholder="例如: 0.7">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateLoadTorque()">计算</button>
+        
+        <div id="lt_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">减速机轴向负载 F: <span id="lt_F_value"></span> N</div>
+            <div class="result-value">减速机轴负载转矩 T<sub>L</sub>: <span id="lt_TL_value"></span> Nm</div>
+            <div class="result-value">电机轴负载转矩 T<sub>LM</sub>: <span id="lt_result_value"></span> <span id="lt_result_unit"></span></div>
+            <div class="result-formula" id="lt_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. 电机轴加速转矩计算 -->
+<div id="acceleration_torque" class="tab-content">
+    <div class="tool-form">
+        <h2>电机轴加速转矩计算（克服惯量）</h2>
+        <p class="formula-info">皮带和工作物的惯量: J<sub>M1</sub> = m<sub>L</sub> × (D/2)<sup>2</sup></p>
+        <p class="formula-info">滚筒的惯量: J<sub>M2</sub> = (m<sub>2</sub> × D<sup>2</sup>) / 8</p>
+        <p class="formula-info">折算到减速机轴的负载惯量: J<sub>L</sub> = J<sub>M1</sub> + 2×J<sub>M2</sub></p>
+        <p class="formula-info">全负载惯量: J = J<sub>L</sub>/(i<sup>2</sup>) + J<sub>M</sub></p>
+        <p class="formula-info">电机轴加速转矩: T<sub>S</sub> = J × β<sub>M</sub> / η<sub>G</sub></p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于转动惯量理论和角加速度关系。皮带和工作物的惯量J<sub>M1</sub> = m<sub>L</sub> × (D/2)<sup>2</sup>，将直线运动质量等效为旋转惯量，其中D为滚筒直径。滚筒的惯量J<sub>M2</sub> = (m<sub>2</sub> × D<sup>2</sup>) / 8，基于薄圆盘绕中心轴的转动惯量公式。折算到减速机轴的负载惯量J<sub>L</sub> = J<sub>M1</sub> + 2×J<sub>M2</sub>，考虑两个滚筒（主动轮和从动轮）。全负载惯量J = J<sub>L</sub>/(i<sup>2</sup>) + J<sub>M</sub>，将负载惯量通过减速比折算到电机轴，加上电机惯量。电机轴加速转矩T<sub>S</sub> = J × β<sub>M</sub> / η<sub>G</sub>，基于角加速度α和转矩T = J×α的关系，其中η<sub>G</sub>为减速机效率。这是标准转动惯量和角加速度理论。<br>
+            <strong>适用范围：</strong>适用于皮带轮间歇运动系统，用于确定电机启动所需的加速转矩。
+        </p>
+        
+        <div class="form-group">
+            <label for="at_mL">皮带与工作物总质量 m<sub>L</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="at_mL" step="0.01" min="0.01" placeholder="例如: 0.5">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_D">滚筒直径 D (m) <span class="required">*</span></label>
+            <input type="number" id="at_D" step="0.0001" min="0.0001" placeholder="例如: 0.052">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_m2">滚筒质量 m<sub>2</sub> (kg) <span class="required">*</span></label>
+            <input type="number" id="at_m2" step="0.01" min="0.01" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_i">减速比 i <span class="required">*</span></label>
+            <input type="number" id="at_i" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_JM">电机惯量 J<sub>M</sub> (kg·m²) <span class="required">*</span></label>
+            <input type="number" id="at_JM" step="0.0001" min="0.0001" value="0.00027" placeholder="例如: 0.00027">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_betaM">电机输出轴角加速度 β<sub>M</sub> (rad/s²) <span class="required">*</span></label>
+            <input type="number" id="at_betaM" step="0.01" min="0.01" placeholder="例如: 100">
+        </div>
+        
+        <div class="form-group">
+            <label for="at_etaG">减速机机械效率 η<sub>G</sub> <span class="required">*</span></label>
+            <input type="number" id="at_etaG" step="0.01" min="0" max="1" value="0.7" placeholder="例如: 0.7">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateAccelerationTorque()">计算</button>
+        
+        <div id="at_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">皮带和工作物的惯量 J<sub>M1</sub>: <span id="at_JM1_value"></span> kg·m²</div>
+            <div class="result-value">滚筒的惯量 J<sub>M2</sub>: <span id="at_JM2_value"></span> kg·m²</div>
+            <div class="result-value">折算到减速机轴的负载惯量 J<sub>L</sub>: <span id="at_JL_value"></span> kg·m²</div>
+            <div class="result-value">全负载惯量 J: <span id="at_J_value"></span> kg·m²</div>
+            <div class="result-value">电机轴加速转矩 T<sub>S</sub>: <span id="at_result_value"></span> <span id="at_result_unit"></span></div>
+            <div class="result-formula" id="at_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. 必须转矩 -->
+<div id="required_torque" class="tab-content">
+    <div class="tool-form">
+        <h2>必须转矩计算</h2>
+        <p class="formula-info">公式: T<sub>M</sub> = (T<sub>L</sub> + T<sub>S</sub>) × S</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于转矩叠加原理和工程安全设计原则。必须转矩T<sub>M</sub> = (T<sub>LM</sub> + T<sub>S</sub>) × S，其中T<sub>LM</sub>为电机轴负载转矩（克服负载所需），T<sub>S</sub>为电机轴加速转矩（克服系统惯量加速所需），两者叠加得到总需求转矩。安全系数S用于考虑计算误差、参数变化、负载波动等因素，确保系统可靠运行。这是标准机械设计中的安全设计方法。<br>
+            <strong>适用范围：</strong>适用于电机选型计算，用于确定电机必须提供的转矩，确保系统能够可靠运行。
+        </p>
+        
+        <div class="form-group">
+            <label for="rt_TLM">电机轴负载转矩 T<sub>LM</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="rt_TLM" step="0.0001" min="0" placeholder="例如: 0.01">
+        </div>
+        
+        <div class="form-group">
+            <label for="rt_TS">电机轴加速转矩 T<sub>S</sub> (Nm) <span class="required">*</span></label>
+            <input type="number" id="rt_TS" step="0.0001" min="0" placeholder="例如: 0.05">
+        </div>
+        
+        <div class="form-group">
+            <label for="rt_S">安全系数 S <span class="required">*</span></label>
+            <input type="number" id="rt_S" step="0.1" min="0.1" value="2" placeholder="例如: 2">
+            <small>通常范围: 1-2</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateRequiredTorque()">计算</button>
+        
+        <div id="rt_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="rt_result_value"></span> <span id="rt_result_unit"></span></div>
+            <div class="result-formula" id="rt_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 6. 惯量比 -->
+<div id="inertia_ratio" class="tab-content">
+    <div class="tool-form">
+        <h2>负荷与电机惯量比计算</h2>
+        <p class="formula-info">公式: N<sub>1</sub> = (J<sub>L</sub>/(i<sup>2</sup>)) / J<sub>M</sub></p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于伺服系统惯量匹配理论。惯量比N<sub>1</sub> = (J<sub>L</sub>/(i<sup>2</sup>)) / J<sub>M</sub>表示折算到电机轴的负载惯量与电机惯量的比值，用于评估系统的动态响应性能。其中J<sub>L</sub>为折算到减速机轴的负载惯量，通过减速比i<sup>2</sup>折算到电机轴。当惯量比过大时，系统响应变慢，定位精度下降，可能出现振荡；当惯量比过小时，电机功率利用率低。通常建议N<sub>1</sub> ≤ 5，这是基于大量工程实践总结的经验值，确保系统具有良好的动态响应和稳定性。这是标准伺服系统设计理论。<br>
+            <strong>适用范围：</strong>适用于皮带轮间歇运动系统的伺服电机选型，用于评估负载与电机的惯量匹配情况，确保系统具有良好的动态性能。
+        </p>
+        
+        <div class="form-group">
+            <label for="ir_JL">折算到减速机轴的负载惯量 J<sub>L</sub> (kg·m²) <span class="required">*</span></label>
+            <input type="number" id="ir_JL" step="any" min="0.000001" placeholder="例如: 0.001">
+        </div>
+        
+        <div class="form-group">
+            <label for="ir_i">减速比 i <span class="required">*</span></label>
+            <input type="number" id="ir_i" step="any" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="ir_JM">电机惯量 J<sub>M</sub> (kg·m²) <span class="required">*</span></label>
+            <input type="number" id="ir_JM" step="any" min="0.0001" value="0.00027" placeholder="例如: 0.00027">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateInertiaRatio()">计算</button>
+        
+        <div id="ir_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">惯量比 N<sub>1</sub>: <span id="ir_result_value"></span></div>
+            <div class="result-formula" id="ir_result_formula"></div>
+            <div id="ir_warning" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/tools/belt_intermittent.js"></script>
+{% endblock %}

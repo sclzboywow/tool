@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}步进电机惯量计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>步进电机惯量计算</h1>
+    <p class="subtitle">计算步进电机的惯量、角加速度和力矩，包括滚珠丝杠、齿条和小齿轮、旋转体、角加速度和电机力矩计算</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">W</td><td style="padding: 0.3rem 0;">可动部分总重量(kg)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">BP</td><td style="padding: 0.3rem 0;">丝杠螺距(mm)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">D</td><td style="padding: 0.3rem 0;">小齿轮/链轮直径(mm)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">J₁</td><td style="padding: 0.3rem 0;">转盘的惯性矩(kg·m²)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">L</td><td style="padding: 0.3rem 0;">物体与旋转轴的距离(mm)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">GL</td><td style="padding: 0.3rem 0;">减速比</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">n</td><td style="padding: 0.3rem 0;">转速(n/s, 转/秒)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">Δt</td><td style="padding: 0.3rem 0;">加速时间(s)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η</td><td style="padding: 0.3rem 0;">传动系统的效率</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 标签页 -->
+<div class="sub-tabs-container">
+    <div id="sub-tabs-stepper" class="sub-tabs active">
+        <button class="sub-tab active" onclick="switchSubTab('ball_screw')">1. 滚珠丝杠惯量计算</button>
+        <button class="sub-tab" onclick="switchSubTab('rack_pinion')">2. 齿条和小齿轮・传送带・链条传动惯量计算</button>
+        <button class="sub-tab" onclick="switchSubTab('turntable')">3. 旋转体・转盘驱动惯量计算</button>
+        <button class="sub-tab" onclick="switchSubTab('angular_acceleration')">4. 角加速度计算</button>
+        <button class="sub-tab" onclick="switchSubTab('motor_torque')">5. 电机力矩计算</button>
+    </div>
+</div>
+
+<!-- 1. 滚珠丝杠惯量计算 -->
+<div id="ball_screw" class="tab-content active">
+    <div class="tool-form">
+        <h2>滚珠丝杠惯量计算</h2>
+        <p class="formula-info">滚珠丝杠惯量: J₁ = W × (BP / (2 × π × 1000))² × GL²</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于滚珠丝杠传动的惯量计算理论。滚珠丝杠惯量J₁ = W × (BP / (2 × π × 1000))² × GL²，其中W为可动部分总重量，BP为丝杠螺距（转换为m），通过减速比GL²放大。该公式将直线运动质量等效为旋转惯量，基于滚珠丝杠的传动特性。这是标准滚珠丝杠惯量计算理论。<br>
+            <strong>适用范围：</strong>适用于滚珠丝杠传动系统的惯量计算，用于确定电机选型所需的惯量参数。
+        </p>
+        
+        <div class="form-group">
+            <label for="bs_W">可动部分总重量 W (kg) <span class="required">*</span></label>
+            <input type="number" id="bs_W" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_BP">丝杠螺距 BP (mm) <span class="required">*</span></label>
+            <input type="number" id="bs_BP" step="0.1" min="0.1" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_GL">减速比 GL <span class="required">*</span></label>
+            <input type="number" id="bs_GL" step="0.1" min="0.1" value="3" placeholder="例如: 3">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateBallScrew()">计算</button>
+        
+        <div id="bs_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">滚珠丝杠惯量 J₁: <span id="bs_result_value"></span> <span id="bs_result_unit"></span></div>
+            <div class="result-formula" id="bs_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. 齿条和小齿轮・传送带・链条传动惯量计算 -->
+<div id="rack_pinion" class="tab-content">
+    <div class="tool-form">
+        <h2>齿条和小齿轮・传送带・链条传动惯量计算</h2>
+        <p class="formula-info">惯量: J = W × (D / 2000)² × GL²</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于齿条和小齿轮、传送带、链条传动的惯量计算理论。惯量J = W × (D / 2000)² × GL²，其中W为可动部分总重量，D为小齿轮/链轮直径（转换为m），通过减速比GL²放大。该公式将直线运动质量等效为旋转惯量，基于齿轮、皮带或链条的传动特性。这是标准齿条和小齿轮、传送带、链条传动惯量计算理论。<br>
+            <strong>适用范围：</strong>适用于齿条和小齿轮、传送带、链条传动系统的惯量计算，用于确定电机选型所需的惯量参数。
+        </p>
+        
+        <div class="form-group">
+            <label for="rp_W">可动部分总重量 W (kg) <span class="required">*</span></label>
+            <input type="number" id="rp_W" step="0.1" min="0.1" value="4" placeholder="例如: 4">
+        </div>
+        
+        <div class="form-group">
+            <label for="rp_D">小齿轮/链轮直径 D (mm) <span class="required">*</span></label>
+            <input type="number" id="rp_D" step="0.1" min="0.1" value="20" placeholder="例如: 20">
+        </div>
+        
+        <div class="form-group">
+            <label for="rp_GL">减速比 GL <span class="required">*</span></label>
+            <input type="number" id="rp_GL" step="0.1" min="0.1" value="3" placeholder="例如: 3">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateRackPinion()">计算</button>
+        
+        <div id="rp_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">惯量 J: <span id="rp_result_value"></span> <span id="rp_result_unit"></span></div>
+            <div class="result-formula" id="rp_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. 旋转体・转盘驱动惯量计算 -->
+<div id="turntable" class="tab-content">
+    <div class="tool-form">
+        <h2>旋转体・转盘驱动惯量计算</h2>
+        <p class="formula-info">惯量: J = (J₁ + W × (L / 1000)²) × GL²</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于旋转体和转盘驱动的惯量计算理论。惯量J = (J₁ + W × (L / 1000)²) × GL²，其中J₁为转盘的惯性矩，W为转盘上物体的重量，L为物体与旋转轴的距离（转换为m），通过减速比GL²放大。该公式基于平行轴定理，将转盘本身的惯量和转盘上物体的惯量相加，再通过减速比折算到电机轴。这是标准旋转体和转盘驱动惯量计算理论。<br>
+            <strong>适用范围：</strong>适用于旋转体和转盘驱动系统的惯量计算，用于确定电机选型所需的惯量参数。
+        </p>
+        
+        <div class="form-group">
+            <label for="tt_J1">转盘的惯性矩 J₁ (kg·m²) <span class="required">*</span></label>
+            <input type="number" id="tt_J1" step="0.1" min="0" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="tt_W">转盘上物体的重量 W (kg) <span class="required">*</span></label>
+            <input type="number" id="tt_W" step="0.1" min="0.1" value="10" placeholder="例如: 10">
+        </div>
+        
+        <div class="form-group">
+            <label for="tt_L">物体与旋转轴的距离 L (mm) <span class="required">*</span></label>
+            <input type="number" id="tt_L" step="0.1" min="0.1" value="50" placeholder="例如: 50">
+        </div>
+        
+        <div class="form-group">
+            <label for="tt_GL">减速比 GL <span class="required">*</span></label>
+            <input type="number" id="tt_GL" step="0.1" min="0.1" value="3" placeholder="例如: 3">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateTurntable()">计算</button>
+        
+        <div id="tt_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">惯量 J: <span id="tt_result_value"></span> <span id="tt_result_unit"></span></div>
+            <div class="result-formula" id="tt_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. 角加速度计算 -->
+<div id="angular_acceleration" class="tab-content">
+    <div class="tool-form">
+        <h2>角加速度计算</h2>
+        <p class="formula-info">角加速度: ε = (n × 2 × π) / Δt</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于运动学理论。控制系统要定位准确，物体运动必须有加减速过程。角加速度ε = (n × 2 × π) / Δt，其中n为转速（转/秒），转换为角速度ω = n × 2π（弧度/秒），Δt为加速时间。该公式基于角加速度的定义，即角速度的变化率。这是标准运动学理论。<br>
+            <strong>适用范围：</strong>适用于根据转速和加速时间计算角加速度的场景，用于确定电机选型所需的角加速度参数。
+        </p>
+        
+        <div class="form-group">
+            <label for="aa_n">转速 n (n/s, 转/秒) <span class="required">*</span></label>
+            <input type="number" id="aa_n" step="0.1" min="0.1" value="500" placeholder="例如: 500">
+        </div>
+        
+        <div class="form-group">
+            <label for="aa_delta_t">加速时间 Δt (s) <span class="required">*</span></label>
+            <input type="number" id="aa_delta_t" step="0.1" min="0.1" value="0.5" placeholder="例如: 0.5">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateAngularAcceleration()">计算</button>
+        
+        <div id="aa_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">角加速度 ε: <span id="aa_result_value"></span> <span id="aa_result_unit"></span></div>
+            <div class="result-formula" id="aa_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. 电机力矩计算 -->
+<div id="motor_torque" class="tab-content">
+    <div class="tool-form">
+        <h2>电机力矩计算</h2>
+        <p class="formula-info">电机力矩: T = (J × ε + T<sub>L</sub>) / η</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于电机力矩平衡理论。电机力矩T = (J × ε + T<sub>L</sub>) / η，其中J为惯量，ε为角加速度，T<sub>L</sub>为系统外力折算到电机上的力矩，η为传动系统的效率。该公式考虑了加速所需的力矩和外部负载力矩，并考虑了传动系统的效率损失。常用机构的机械效率：滑动丝杠0.5~0.8，滚珠丝杠0.9，齿条和齿轮0.8，齿轮减速器0.8~0.95，蜗轮减速器0.5~0.7，皮带传动0.95，链条传动0.9。根据计算出的力矩T再加上一定的安全系数，即可选电机型号。这是标准电机力矩计算理论。<br>
+            <strong>适用范围：</strong>适用于根据惯量、角加速度和外部负载计算电机所需力矩的场景，用于确定电机选型所需的力矩参数。
+        </p>
+        
+        <div class="form-group">
+            <label for="mt_J">惯量 J (kg·m²) <span class="required">*</span></label>
+            <input type="number" id="mt_J" step="0.000001" min="0.000001" value="0.00057" placeholder="例如: 0.00057">
+            <small>可从前面的惯量计算标签页获得</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="mt_epsilon">角加速度 ε (rad/s²) <span class="required">*</span></label>
+            <input type="number" id="mt_epsilon" step="0.1" min="0.1" value="6283.185" placeholder="例如: 6283.185">
+            <small>可从"角加速度计算"标签页获得</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="mt_T_L">系统外力折算到电机上的力矩 T<sub>L</sub> (Nm)</label>
+            <input type="number" id="mt_T_L" step="0.1" min="0" value="0" placeholder="例如: 0">
+            <small>默认为0，如有外部负载请填写</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="mt_eta">传动系统的效率 η <span class="required">*</span></label>
+            <input type="number" id="mt_eta" step="0.01" min="0.01" max="1" value="0.8" placeholder="例如: 0.8">
+            <small>滑动丝杠0.5~0.8，滚珠丝杠0.9，齿条和齿轮0.8，齿轮减速器0.8~0.95，蜗轮减速器0.5~0.7，皮带传动0.95，链条传动0.9</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateMotorTorque()">计算</button>
+        
+        <div id="mt_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">电机力矩 T: <span id="mt_result_value"></span> <span id="mt_result_unit"></span></div>
+            <div class="result-formula" id="mt_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/tools/stepper_motor_inertia.js"></script>
+{% endblock %}
+

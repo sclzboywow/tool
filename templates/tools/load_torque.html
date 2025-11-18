@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}不同驱动机构下负载转矩计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>不同驱动机构下负载转矩计算</h1>
+    <p class="subtitle">计算不同驱动机构下的负载转矩，包括滚珠丝杠驱动、滑轮驱动、金属线/皮带/齿轮/齿条驱动和实际测试计算方法</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">F<sub>A</sub></td><td style="padding: 0.3rem 0;">外力(N)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">m</td><td style="padding: 0.3rem 0;">工作物与工作台的总质量(kg)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">g</td><td style="padding: 0.3rem 0;">重力加速度(m/s²)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">α</td><td style="padding: 0.3rem 0;">倾斜角度(°)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">μ</td><td style="padding: 0.3rem 0;">滑动面的摩擦系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P<sub>B</sub></td><td style="padding: 0.3rem 0;">滚珠螺杆螺距(m/rev)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η</td><td style="padding: 0.3rem 0;">机械效率</td></tr>
+                <tr><td style="padding: 0.3rem 0;">μ<sub>0</sub></td><td style="padding: 0.3rem 0;">预压螺帽的内部摩擦系数</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">F<sub>0</sub></td><td style="padding: 0.3rem 0;">预负载(N)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">i</td><td style="padding: 0.3rem 0;">减速比</td></tr>
+                <tr><td style="padding: 0.3rem 0;">D</td><td style="padding: 0.3rem 0;">直径(m)<br><small>滑轮/小齿轮/链轮</small></td></tr>
+                <tr><td style="padding: 0.3rem 0;">F<sub>B</sub></td><td style="padding: 0.3rem 0;">主轴开始运动时的力(N)</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 标签页 -->
+<div class="sub-tabs-container">
+    <div id="sub-tabs-load-torque" class="sub-tabs active">
+        <button class="sub-tab active" onclick="switchSubTab('ball_screw')">1. 滚珠丝杠驱动下负载转矩计算</button>
+        <button class="sub-tab" onclick="switchSubTab('pulley')">2. 滑轮驱动下负载转矩计算</button>
+        <button class="sub-tab" onclick="switchSubTab('belt_gear_rack')">3. 金属线、皮带齿轮、齿条驱动下负载转矩计算</button>
+        <button class="sub-tab" onclick="switchSubTab('test_method')">4. 实际测试计算方法</button>
+    </div>
+</div>
+
+<!-- 1. 滚珠丝杠驱动下负载转矩计算 -->
+<div id="ball_screw" class="tab-content active">
+    <div class="tool-form">
+        <h2>滚珠丝杠驱动下负载转矩计算</h2>
+        <p class="formula-info">轴方向负载: F = F<sub>A</sub> + mg(sinα + μcosα)</p>
+        <p class="formula-info">负载转矩: T<sub>L</sub> = (F×P<sub>B</sub>/(2×π×η) + μ<sub>0</sub>×F<sub>0</sub>×P<sub>B</sub>/(2×π)) × (1/i)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于滚珠丝杠传动的负载转矩计算理论。轴方向负载F = F<sub>A</sub> + mg(sinα + μcosα)，其中F<sub>A</sub>为外力，m为工作物与工作台的总质量，g为重力加速度，α为倾斜角度，μ为滑动面的摩擦系数。该公式考虑了外力、重力的倾斜分量和摩擦阻力。负载转矩T<sub>L</sub> = (F×P<sub>B</sub>/(2×π×η) + μ<sub>0</sub>×F<sub>0</sub>×P<sub>B</sub>/(2×π)) × (1/i)，其中P<sub>B</sub>为滚珠螺杆螺距，η为机械效率，μ<sub>0</sub>为预压螺帽的内部摩擦系数，F<sub>0</sub>为预负载，i为减速比。第一部分F×P<sub>B</sub>/(2×π×η)是轴方向负载产生的转矩，第二部分μ<sub>0</sub>×F<sub>0</sub>×P<sub>B</sub>/(2×π)是预负载产生的摩擦转矩，最后通过减速比折算到电机轴。这是标准滚珠丝杠传动负载转矩计算理论。<br>
+            <strong>适用范围：</strong>适用于滚珠丝杠驱动系统的负载转矩计算，用于确定电机选型所需的转矩参数。适用于有倾斜角度和预负载的滚珠丝杠系统。
+        </p>
+        
+        <div class="form-group">
+            <label for="bs_FA">外力 F<sub>A</sub> (N) <span class="required">*</span></label>
+            <input type="number" id="bs_FA" step="0.1" value="5" placeholder="例如: 5">
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_m">工作物与工作台的总质量 m (kg) <span class="required">*</span></label>
+            <input type="number" id="bs_m" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_g">重力加速度 g (m/s²)</label>
+            <input type="number" id="bs_g" step="0.001" min="0.001" value="9.807" placeholder="例如: 9.807">
+            <small>默认9.807</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_alpha">倾斜角度 α (°) <span class="required">*</span></label>
+            <input type="number" id="bs_alpha" step="0.1" value="45" placeholder="例如: 45">
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_mu">滑动面的摩擦系数 μ <span class="required">*</span></label>
+            <input type="number" id="bs_mu" step="0.01" min="0" value="0.05" placeholder="例如: 0.05">
+            <small>一般取0.05</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_PB">滚珠螺杆螺距 P<sub>B</sub> (m/rev) <span class="required">*</span></label>
+            <input type="number" id="bs_PB" step="0.001" min="0.001" value="0.2" placeholder="例如: 0.2">
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_eta">机械效率 η <span class="required">*</span></label>
+            <input type="number" id="bs_eta" step="0.01" min="0.01" max="1" value="0.9" placeholder="例如: 0.9">
+            <small>滚珠丝杠一般0.85-0.95</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_mu0">预压螺帽的内部摩擦系数 μ<sub>0</sub> <span class="required">*</span></label>
+            <input type="number" id="bs_mu0" step="0.01" min="0" value="0.2" placeholder="例如: 0.2">
+            <small>一般0.1-0.3</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_F0">预负载 F<sub>0</sub> (N) <span class="required">*</span></label>
+            <input type="number" id="bs_F0" step="0.1" min="0" value="1" placeholder="例如: 1">
+            <small>一般约为F的1/3</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="bs_i">减速比 i <span class="required">*</span></label>
+            <input type="number" id="bs_i" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateBallScrew()">计算</button>
+        
+        <div id="bs_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">轴方向负载 F: <span id="bs_F_value"></span> N</div>
+            <div class="result-value">负载转矩 T<sub>L</sub>: <span id="bs_result_value"></span> <span id="bs_result_unit"></span></div>
+            <div class="result-formula" id="bs_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. 滑轮驱动下负载转矩计算 -->
+<div id="pulley" class="tab-content">
+    <div class="tool-form">
+        <h2>滑轮驱动下负载转矩计算</h2>
+        <p class="formula-info">负载转矩: T<sub>L</sub> = (μ×F<sub>A</sub> + m×g) × D / (2×i)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于滑轮传动的负载转矩计算理论。负载转矩T<sub>L</sub> = (μ×F<sub>A</sub> + m×g) × D / (2×i)，其中μ为滑动面的摩擦系数，F<sub>A</sub>为外力，m为工作物与工作台的总质量，g为重力加速度，D为终段滑轮直径，i为减速比。该公式考虑了摩擦阻力和重力，通过滑轮直径和减速比折算到电机轴。这是标准滑轮传动负载转矩计算理论。<br>
+            <strong>适用范围：</strong>适用于滑轮驱动系统的负载转矩计算，用于确定电机选型所需的转矩参数。适用于垂直或倾斜的滑轮系统。
+        </p>
+        
+        <div class="form-group">
+            <label for="p_FA">外力 F<sub>A</sub> (N) <span class="required">*</span></label>
+            <input type="number" id="p_FA" step="0.1" value="5" placeholder="例如: 5">
+        </div>
+        
+        <div class="form-group">
+            <label for="p_m">工作物与工作台的总质量 m (kg) <span class="required">*</span></label>
+            <input type="number" id="p_m" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="p_g">重力加速度 g (m/s²)</label>
+            <input type="number" id="p_g" step="0.001" min="0.001" value="9.807" placeholder="例如: 9.807">
+            <small>默认9.807</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="p_mu">滑动面的摩擦系数 μ <span class="required">*</span></label>
+            <input type="number" id="p_mu" step="0.01" min="0" value="0.05" placeholder="例如: 0.05">
+            <small>一般取0.05</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="p_D">终段滑轮直径 D (m) <span class="required">*</span></label>
+            <input type="number" id="p_D" step="0.01" min="0.01" value="0.5" placeholder="例如: 0.5">
+        </div>
+        
+        <div class="form-group">
+            <label for="p_i">减速比 i <span class="required">*</span></label>
+            <input type="number" id="p_i" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculatePulley()">计算</button>
+        
+        <div id="p_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">负载转矩 T<sub>L</sub>: <span id="p_result_value"></span> <span id="p_result_unit"></span></div>
+            <div class="result-formula" id="p_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. 金属线、皮带齿轮、齿条驱动下负载转矩计算 -->
+<div id="belt_gear_rack" class="tab-content">
+    <div class="tool-form">
+        <h2>金属线、皮带齿轮、齿条驱动下负载转矩计算</h2>
+        <p class="formula-info">力: F = F<sub>A</sub> + mg(sinα + μcosα)</p>
+        <p class="formula-info">负载转矩: T<sub>L</sub> = F × D / (2×η×i)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于金属线、皮带、齿轮、齿条传动的负载转矩计算理论。力F = F<sub>A</sub> + mg(sinα + μcosα)，其中F<sub>A</sub>为外力，m为工作物与工作台的总质量，g为重力加速度，α为倾斜角度，μ为滑动面的摩擦系数。该公式考虑了外力、重力的倾斜分量和摩擦阻力。负载转矩T<sub>L</sub> = F × D / (2×η×i)，其中D为小齿轮/链轮直径，η为机械效率，i为减速比。该公式通过直径、效率和减速比折算到电机轴。这是标准金属线、皮带、齿轮、齿条传动负载转矩计算理论。<br>
+            <strong>适用范围：</strong>适用于金属线、皮带、齿轮、齿条驱动系统的负载转矩计算，用于确定电机选型所需的转矩参数。适用于有倾斜角度和摩擦的传动系统。
+        </p>
+        
+        <div class="form-group">
+            <label for="bgr_FA">外力 F<sub>A</sub> (N) <span class="required">*</span></label>
+            <input type="number" id="bgr_FA" step="0.1" value="5" placeholder="例如: 5">
+        </div>
+        
+        <div class="form-group">
+            <label for="bgr_m">工作物与工作台的总质量 m (kg) <span class="required">*</span></label>
+            <input type="number" id="bgr_m" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <div class="form-group">
+            <label for="bgr_g">重力加速度 g (m/s²)</label>
+            <input type="number" id="bgr_g" step="0.001" min="0.001" value="9.807" placeholder="例如: 9.807">
+            <small>默认9.807</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="bgr_alpha">倾斜角度 α (°) <span class="required">*</span></label>
+            <input type="number" id="bgr_alpha" step="0.1" value="45" placeholder="例如: 45">
+        </div>
+        
+        <div class="form-group">
+            <label for="bgr_mu">滑动面的摩擦系数 μ <span class="required">*</span></label>
+            <input type="number" id="bgr_mu" step="0.01" min="0" value="0.05" placeholder="例如: 0.05">
+            <small>一般取0.05</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="bgr_D">小齿轮/链轮直径 D (m) <span class="required">*</span></label>
+            <input type="number" id="bgr_D" step="0.01" min="0.01" value="0.5" placeholder="例如: 0.5">
+        </div>
+        
+        <div class="form-group">
+            <label for="bgr_eta">机械效率 η <span class="required">*</span></label>
+            <input type="number" id="bgr_eta" step="0.01" min="0.01" max="1" value="0.8" placeholder="例如: 0.8">
+            <small>齿条和齿轮0.8，皮带传动0.95，链条传动0.9</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="bgr_i">减速比 i <span class="required">*</span></label>
+            <input type="number" id="bgr_i" step="0.1" min="0.1" value="1" placeholder="例如: 1">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateBeltGearRack()">计算</button>
+        
+        <div id="bgr_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">力 F: <span id="bgr_F_value"></span> N</div>
+            <div class="result-value">负载转矩 T<sub>L</sub>: <span id="bgr_result_value"></span> <span id="bgr_result_unit"></span></div>
+            <div class="result-formula" id="bgr_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. 实际测试计算方法 -->
+<div id="test_method" class="tab-content">
+    <div class="tool-form">
+        <h2>实际测试计算方法</h2>
+        <p class="formula-info">负载转矩: T<sub>L</sub> = F<sub>B</sub> × (D / 2)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于实际测试的负载转矩计算方法。负载转矩T<sub>L</sub> = F<sub>B</sub> × (D / 2)，其中F<sub>B</sub>为主轴开始运动时的力（通过弹簧秤测量），D为终段滑轮直径。该公式基于转矩的定义T = F×r，其中F为作用在滑轮边缘的力，r为滑轮半径（D/2）。F<sub>B</sub> = 弹簧秤值 (kg×g [m/s²])，需要将弹簧秤读数转换为力。这是实际测试中常用的负载转矩测量方法。<br>
+            <strong>适用范围：</strong>适用于通过实际测试测量负载转矩的场景，用于验证理论计算结果或直接测量实际系统的负载转矩。适用于可以通过弹簧秤测量的滑轮系统。
+        </p>
+        
+        <div class="form-group">
+            <label for="tm_FB">主轴开始运动时的力 F<sub>B</sub> (N) <span class="required">*</span></label>
+            <input type="number" id="tm_FB" step="0.1" min="0.1" value="2" placeholder="例如: 2">
+            <small>F<sub>B</sub> = 弹簧秤值 (kg×g [m/s²])</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="tm_D">终段滑轮直径 D (m) <span class="required">*</span></label>
+            <input type="number" id="tm_D" step="0.01" min="0.01" value="0.5" placeholder="例如: 0.5">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateTestMethod()">计算</button>
+        
+        <div id="tm_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value">负载转矩 T<sub>L</sub>: <span id="tm_result_value"></span> <span id="tm_result_unit"></span></div>
+            <div class="result-formula" id="tm_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/tools/load_torque.js"></script>
+{% endblock %}
+

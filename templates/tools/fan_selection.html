@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}风机选型计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>风机选型计算</h1>
+    <p class="subtitle">根据流量、全压等参数进行风机选型计算，计算比转数、工况密度、性能点等参数</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">基本参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">Q</td><td style="padding: 0.3rem 0;">流量(m³/h)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P</td><td style="padding: 0.3rem 0;">全压(Pa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">H</td><td style="padding: 0.3rem 0;">海拔高度(m)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">P<sub>inlet</sub></td><td style="padding: 0.3rem 0;">进口压力(Pa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">T</td><td style="padding: 0.3rem 0;">工作温度(℃)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">风机参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">k</td><td style="padding: 0.3rem 0;">绝热指数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">n</td><td style="padding: 0.3rem 0;">工作转速(rpm)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">型号</td><td style="padding: 0.3rem 0;">风机型号</td></tr>
+                <tr><td style="padding: 0.3rem 0;">D</td><td style="padding: 0.3rem 0;">叶轮直径(m)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">类型</td><td style="padding: 0.3rem 0;">单吸/双吸</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">计算结果</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">P<sub>atm</sub></td><td style="padding: 0.3rem 0;">当地大气压(Pa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">ρ<sub>working</sub></td><td style="padding: 0.3rem 0;">工况密度(kg/m³)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">Z</td><td style="padding: 0.3rem 0;">压缩性系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">n<sub>s</sub></td><td style="padding: 0.3rem 0;">比转数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">u</td><td style="padding: 0.3rem 0;">线速度(m/s)</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+    </div>
+</div>
+
+<!-- 计算公式说明 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>计算公式</h2>
+    <p class="formula-info">当地大气压: P<sub>atm</sub> = 101325 × (1 - 0.02257 × H/1000)^5.256</p>
+    <p class="formula-info">工况密度: ρ<sub>working</sub> = (273/(273+T)) × (P<sub>atm</sub> + P<sub>inlet</sub>)/101325 × ρ<sub>standard</sub></p>
+    <p class="formula-info">压缩性系数: Z = (k/(k-1)) × ((1 + P/(P<sub>atm</sub> + P<sub>inlet</sub>))^((k-1)/k) - 1) × (P/(P<sub>atm</sub> + P<sub>inlet</sub>))^(-1)</p>
+    <p class="formula-info">比转数: n<sub>s</sub> = 5.54 × n × (Q/3600)^0.5 / (P × 1.2/ρ<sub>working</sub>)^0.75</p>
+    <p class="formula-info">流量: Q = φ × π/4 × D² × π × D × n/60 × 3600 (单吸) 或 2×... (双吸)</p>
+    <p class="formula-info">全压: P = ψ<sub>p</sub> × ρ<sub>working</sub> × (π × D × n/60)²</p>
+    <p class="formula-info">内功率: P<sub>internal</sub> = Q/3600 × P / η / 10</p>
+    <p class="formula-info">轴功率: P<sub>shaft</sub> = P<sub>internal</sub>/0.98 × 1.15 (T&lt;200℃) 或 × 1.3 (T≥200℃)</p>
+    <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1.5rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+        <strong>物理来源：</strong>基于流体力学、理想气体状态方程和风机相似理论。当地大气压P<sub>atm</sub> = 101325 × (1 - 0.02257 × H/1000)^5.256，基于国际标准大气模型（ISA），考虑了海拔高度对大气压的影响，有理论依据。工况密度ρ<sub>working</sub> = (273/(273+T)) × (P<sub>atm</sub> + P<sub>inlet</sub>)/101325 × ρ<sub>standard</sub>，基于理想气体状态方程PV=nRT，有严格的理论依据。压缩性系数Z用于修正高压缩比下的压缩性影响，基于可压缩流体理论。比转数n<sub>s</sub> = 5.54 × n × (Q/3600)^0.5 / (P × 1.2/ρ<sub>working</sub>)^0.75，基于风机相似理论，5.54为经验换算系数（不同标准可能略有差异），用于确定风机类型。流量和全压的计算基于风机相似理论，使用流量系数φ和压力系数ψ<sub>p</sub>，这些系数通过实验获得。内功率和轴功率的计算基于流体功率公式P=Q×P/η，考虑了风机效率和温度修正，其中温度修正系数（1.15或1.3）为工程经验值。<br>
+        <strong>适用范围：</strong>适用于各类风机的选型计算，包括离心风机、轴流风机等。适用于标准大气条件下的空气介质，温度范围通常在-20°C至300°C之间。适用于风机选型、性能评估、系统设计和运行优化的初步计算。注意：性能参数（φ、ψ<sub>p</sub>、η）需要根据风机型号从数据库获取或由用户提供，这些参数通过实验获得。公式中的经验系数（如5.54、1.2、1.15、1.3）基于工程实践总结，不同标准可能略有差异。
+    </p>
+</div>
+
+<!-- 输入表单 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>输入参数</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+        <!-- 基本参数 -->
+        <div class="form-group">
+            <label for="Q">流量 Q (m³/h) <span class="required">*</span></label>
+            <input type="number" id="Q" step="1" min="1" value="16000" placeholder="例如: 16000">
+        </div>
+        
+        <div class="form-group">
+            <label for="P">全压 P (Pa) <span class="required">*</span></label>
+            <input type="number" id="P" step="1" min="1" value="350" placeholder="例如: 350">
+        </div>
+        
+        <div class="form-group">
+            <label for="H">海拔高度 H (m)</label>
+            <input type="number" id="H" step="1" min="0" value="33" placeholder="例如: 33">
+        </div>
+        
+        <div class="form-group">
+            <label for="P_inlet">进口压力 P<sub>inlet</sub> (Pa)</label>
+            <input type="number" id="P_inlet" step="1" min="0" value="0" placeholder="例如: 0">
+        </div>
+        
+        <div class="form-group">
+            <label for="T">工作温度 T (℃) <span class="required">*</span></label>
+            <input type="number" id="T" step="0.1" value="60" placeholder="例如: 60">
+        </div>
+        
+        <div class="form-group">
+            <label for="k">绝热指数 k</label>
+            <input type="number" id="k" step="0.01" min="1.01" value="1.4" placeholder="例如: 1.4">
+            <small>空气: 1.4</small>
+        </div>
+        
+        <!-- 风机参数 -->
+        <div class="form-group">
+            <label for="n">工作转速 n (rpm) <span class="required">*</span></label>
+            <input type="number" id="n" step="1" min="1" value="420" placeholder="例如: 420">
+        </div>
+        
+        <div class="form-group">
+            <label for="fan_type">风机型号 <span class="required">*</span></label>
+            <select id="fan_type">
+                <option value="4-68">4-68</option>
+                <!-- 可以添加更多型号 -->
+            </select>
+            <small>当前支持: 4-68</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="D">给定叶轮直径 D (m) <span class="required">*</span></label>
+            <input type="number" id="D" step="0.01" min="0.01" value="0.8" placeholder="例如: 0.8">
+        </div>
+        
+        <div class="form-group">
+            <label for="suction_type">单吸/双吸</label>
+            <select id="suction_type">
+                <option value="单吸" selected>单吸</option>
+                <option value="双吸">双吸</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="rho_standard">标准密度 ρ<sub>standard</sub> (kg/m³)</label>
+            <input type="number" id="rho_standard" step="0.001" min="0.001" value="1.2" placeholder="例如: 1.2">
+            <small>标准值: 1.2 kg/m³</small>
+        </div>
+    </div>
+    
+    <!-- 性能点输入（可选） -->
+    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e0e0e0;">
+        <h3>性能点数据（可选）</h3>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+            如果不提供性能点数据，系统将从数据库查找对应风机型号的性能参数。如果提供，将使用您输入的数据。
+        </p>
+        <div id="performance-points-container">
+            <!-- 性能点将通过JavaScript动态添加 -->
+        </div>
+        <div style="margin-top: 1rem;">
+            <button type="button" class="btn btn-secondary" onclick="addPerformancePoint()" style="margin-right: 0.5rem;">添加性能点</button>
+            <button type="button" class="btn btn-secondary" onclick="clearPerformancePoints()">清空所有</button>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; text-align: center;">
+        <button type="button" class="btn btn-primary" onclick="calculateFanSelection()">计算</button>
+        <button type="button" class="btn btn-secondary" onclick="resetForm()" style="margin-left: 1rem;">重置</button>
+    </div>
+</div>
+
+<!-- 结果显示 -->
+<div id="result-container" class="result-container" style="display: none;">
+    <h2>计算结果</h2>
+    <div id="result-content"></div>
+</div>
+
+<!-- 性能曲线图（放在结果容器外，确保DOM已存在） -->
+<div id="chart-container" class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 2rem; display: none;">
+    <h2>性能曲线</h2>
+    <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+        <!-- 流量-压力/效率曲线 -->
+        <div>
+            <h3 style="margin-bottom: 1rem; color: #2c3e50;">流量-压力/效率曲线</h3>
+            <canvas id="pressureEfficiencyChart" style="max-height: 400px;"></canvas>
+        </div>
+        
+        <!-- 流量-压力/功率曲线 -->
+        <div>
+            <h3 style="margin-bottom: 1rem; color: #2c3e50;">流量-压力/功率曲线</h3>
+            <canvas id="pressurePowerChart" style="max-height: 400px;"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/static/js/tools/fan_selection.js"></script>
+{% endblock %}
+

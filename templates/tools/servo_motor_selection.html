@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}伺服电机选型计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>伺服电机选型计算</h1>
+    <p class="subtitle">计算直线电机和旋转电机的选型参数，包括推力、扭矩、转速、惯量等</p>
+</div>
+
+<!-- 标签页 -->
+<div class="sub-tabs-container">
+    <div id="sub-tabs-selection" class="sub-tabs active">
+        <button class="sub-tab active" onclick="switchSubTab('linear_motor')">1. 直线电机选型计算</button>
+        <button class="sub-tab" onclick="switchSubTab('rotary_motor')">2. 旋转电机选型计算</button>
+    </div>
+</div>
+
+<!-- 1. 直线电机选型计算 -->
+<div id="linear_motor" class="tab-content active">
+    <!-- 参数说明表格 -->
+    <div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+        <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+            <!-- 第一列 -->
+            <div>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">运动参数</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <tr><td style="padding: 0.3rem 0;">a</td><td style="padding: 0.3rem 0;">加速度 (m/s²)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">V</td><td style="padding: 0.3rem 0;">平台移动速度 (m/min)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">S</td><td style="padding: 0.3rem 0;">单一性行程移动距离 (mm)</td></tr>
+                </table>
+            </div>
+            <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+            <!-- 第二列 -->
+            <div>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">质量参数</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <tr><td style="padding: 0.3rem 0;">M<sub>t</sub></td><td style="padding: 0.3rem 0;">移动平台质量 (kg)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">M<sub>f</sub></td><td style="padding: 0.3rem 0;">负载质量 (kg)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">μ</td><td style="padding: 0.3rem 0;">导轨摩擦系数</td></tr>
+                </table>
+            </div>
+            <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+            <!-- 第三列 -->
+            <div>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">选型结果</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <tr><td style="padding: 0.3rem 0;">F<sub>p</sub></td><td style="padding: 0.3rem 0;">峰值推力 (N)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">F<sub>c</sub></td><td style="padding: 0.3rem 0;">有效推力 (N)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">K<sub>e</sub></td><td style="padding: 0.3rem 0;">反电势常数</td></tr>
+                </table>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+            <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+        </div>
+    </div>
+
+    <!-- 计算公式说明 -->
+    <div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2>计算公式</h2>
+        <p class="formula-info">加减速阶段推力: F<sub>a</sub> = (M<sub>f</sub>+M<sub>t</sub>)×a + (M<sub>f</sub>+M<sub>t</sub>)×g×μ</p>
+        <p class="formula-info">匀速阶段推力: F<sub>v</sub> = (M<sub>f</sub>+M<sub>t</sub>)×g×μ</p>
+        <p class="formula-info">峰值推力: F<sub>p</sub> = F<sub>a</sub> × 1.2</p>
+        <p class="formula-info">有效推力: F<sub>c</sub> = √((F<sub>a</sub>²×t<sub>1</sub> + F<sub>v</sub>²×t<sub>2</sub> + F<sub>a</sub>²×t<sub>1</sub>)/(t<sub>1</sub>+t<sub>1</sub>+t<sub>2</sub>)) × 1.2</p>
+        <p class="formula-info">反电势常数: K<sub>e</sub> = 250/V×60</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1.5rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于牛顿力学和动力学理论。加减速阶段推力F<sub>a</sub> = (M<sub>f</sub>+M<sub>t</sub>)×a + (M<sub>f</sub>+M<sub>t</sub>)×g×μ，基于牛顿第二定律F=ma和摩擦力f=μmg。匀速阶段推力F<sub>v</sub> = (M<sub>f</sub>+M<sub>t</sub>)×g×μ，仅考虑摩擦力。峰值推力F<sub>p</sub> = F<sub>a</sub> × 1.2，其中1.2为工程安全系数（经验值）。有效推力F<sub>c</sub>基于RMS（均方根）计算，用于评估电机的热效应，公式为√((F<sub>a</sub>²×t<sub>1</sub> + F<sub>v</sub>²×t<sub>2</sub> + F<sub>a</sub>²×t<sub>1</sub>)/(t<sub>1</sub>+t<sub>1</sub>+t<sub>2</sub>)) × 1.2，RMS方法基于统计学原理，用于评估周期性负载的等效值。反电势常数K<sub>e</sub> = 250/V×60，用于电机驱动器选型，250为经验常数。<br>
+            <strong>适用范围：</strong>适用于直线电机选型计算，用于确定电机所需的峰值推力、有效推力和反电势常数等关键参数。公式中的安全系数和常数基于工程实践经验，实际应用时可根据具体情况调整。
+        </p>
+    </div>
+
+    <!-- 输入表单 -->
+    <div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2>输入参数</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <div class="form-group">
+                <label for="linear_a">加速度 a (m/s²) <span class="required">*</span></label>
+                <input type="number" id="linear_a" step="0.1" min="0.1" value="11" placeholder="例如: 11">
+            </div>
+            
+            <div class="form-group">
+                <label for="linear_V">平台移动速度 V (m/min) <span class="required">*</span></label>
+                <input type="number" id="linear_V" step="0.1" min="0.1" value="80" placeholder="例如: 80">
+            </div>
+            
+            <div class="form-group">
+                <label for="linear_S">单一性行程移动距离 S (mm) <span class="required">*</span></label>
+                <input type="number" id="linear_S" step="1" min="1" value="700" placeholder="例如: 700">
+            </div>
+            
+            <div class="form-group">
+                <label for="linear_Mt">移动平台质量 M<sub>t</sub> (kg) <span class="required">*</span></label>
+                <input type="number" id="linear_Mt" step="0.1" min="0.1" value="300" placeholder="例如: 300">
+            </div>
+            
+            <div class="form-group">
+                <label for="linear_Mf">负载质量 M<sub>f</sub> (kg)</label>
+                <input type="number" id="linear_Mf" step="0.1" min="0" value="20" placeholder="例如: 20">
+            </div>
+            
+            <div class="form-group">
+                <label for="linear_mu">导轨摩擦系数 μ</label>
+                <input type="number" id="linear_mu" step="0.01" min="0" max="1" value="0.2" placeholder="例如: 0.2">
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+            <button onclick="calculateLinearMotor()" class="btn btn-primary">计算</button>
+            <button onclick="resetLinearForm()" class="btn btn-secondary">重置</button>
+        </div>
+    </div>
+
+    <!-- 结果显示 -->
+    <div id="linear_result-container" class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none;">
+        <h2>计算结果</h2>
+        <div id="linear_result-content"></div>
+    </div>
+</div>
+
+<!-- 2. 旋转电机选型计算 -->
+<div id="rotary_motor" class="tab-content">
+    <!-- 参数说明表格 -->
+    <div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+        <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+            <!-- 第一列 -->
+            <div>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">运动参数</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <tr><td style="padding: 0.3rem 0;">a</td><td style="padding: 0.3rem 0;">加速度 (m/s²)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">V</td><td style="padding: 0.3rem 0;">速度 (m/min)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">S</td><td style="padding: 0.3rem 0;">行程 (mm)</td></tr>
+                </table>
+            </div>
+            <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+            <!-- 第二列 -->
+            <div>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">质量和传动参数</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <tr><td style="padding: 0.3rem 0;">M<sub>t</sub></td><td style="padding: 0.3rem 0;">移动平台质量 (kg)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">M<sub>f</sub></td><td style="padding: 0.3rem 0;">负载质量 (kg)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">μ</td><td style="padding: 0.3rem 0;">摩擦系数</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">η</td><td style="padding: 0.3rem 0;">机械传动效率</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">P<sub>B</sub></td><td style="padding: 0.3rem 0;">导螺杆节距 (mm)</td></tr>
+                </table>
+            </div>
+            <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+            <!-- 第三列 -->
+            <div>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">丝杆参数和选型结果</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <tr><td style="padding: 0.3rem 0;">D<sub>B</sub></td><td style="padding: 0.3rem 0;">丝杆直径 (mm)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">M<sub>B</sub></td><td style="padding: 0.3rem 0;">丝杆质量 (kg)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">T<sub>max</sub></td><td style="padding: 0.3rem 0;">峰值扭矩 (N·m)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">T<sub>rmsx</sub></td><td style="padding: 0.3rem 0;">时效扭矩 (N·m)</td></tr>
+                    <tr><td style="padding: 0.3rem 0;">T<sub>f</sub></td><td style="padding: 0.3rem 0;">额定扭矩 (N·m)</td></tr>
+                </table>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+            <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项</span>
+        </div>
+    </div>
+
+    <!-- 计算公式说明 -->
+    <div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2>计算公式</h2>
+        <p class="formula-info">工作台转动惯量: J<sub>a</sub> = (M<sub>t</sub>+M<sub>f</sub>)×(P<sub>B</sub>/10/2/π)²</p>
+        <p class="formula-info">丝杆转动惯量: J<sub>b</sub> = M<sub>B</sub>×D<sub>B</sub>/10×D<sub>B</sub>/10/8</p>
+        <p class="formula-info">加速扭矩: T<sub>A</sub> = ((M<sub>t</sub>+M<sub>f</sub>)×a×P<sub>B</sub>/2/π/η/1000) + (J<sub>b</sub>×(N×2π/60/t<sub>1</sub>)/η)/10000</p>
+        <p class="formula-info">峰值扭矩: T<sub>max</sub> = (T<sub>A</sub>+T<sub>B</sub>)×1.2</p>
+        <p class="formula-info">时效扭矩: T<sub>rmsx</sub> = √((T<sub>A</sub>²×t<sub>1</sub> + T<sub>B</sub>²×t<sub>2</sub> + T<sub>C</sub>²×t<sub>1</sub>)/(t<sub>1</sub>+t<sub>1</sub>+t<sub>2</sub>))</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1.5rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于刚体动力学和转动惯量理论。工作台转动惯量J<sub>a</sub> = (M<sub>t</sub>+M<sub>f</sub>)×(P<sub>B</sub>/10/2/π)²，基于转动惯量定义J=mr²，将直线运动质量等效为旋转惯量。丝杆转动惯量J<sub>b</sub> = M<sub>B</sub>×D<sub>B</sub>/10×D<sub>B</sub>/10/8，基于圆柱体转动惯量公式J=mr²/2。加速扭矩T<sub>A</sub>考虑了负载加速（基于F=ma）和丝杆自身惯量加速（基于T=Jα，α为角加速度）。匀速扭矩T<sub>B</sub>基于摩擦力矩计算。峰值扭矩T<sub>max</sub> = (T<sub>A</sub>+T<sub>B</sub>)×1.2，其中1.2为工程安全系数（经验值）。时效扭矩T<sub>rmsx</sub>基于RMS（均方根）计算，用于评估电机的热效应，基于统计学原理。额定扭矩T<sub>f</sub> = T<sub>B</sub>×2，2倍系数为工程经验值。转子惯量J<sub>A</sub> = (J<sub>a</sub>+J<sub>b</sub>)/5，除以5为经验换算系数（单位转换为×10⁻⁴ kg·m²）。<br>
+            <strong>适用范围：</strong>适用于旋转电机通过丝杆传动的选型计算，用于确定电机所需的峰值扭矩、时效扭矩、额定扭矩和转子惯量等关键参数。公式中的安全系数和换算系数基于工程实践经验，实际应用时可根据具体情况调整。
+        </p>
+    </div>
+
+    <!-- 输入表单 -->
+    <div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2>输入参数</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <div class="form-group">
+                <label for="rotary_a">加速度 a (m/s²) <span class="required">*</span></label>
+                <input type="number" id="rotary_a" step="0.1" min="0.1" value="5" placeholder="例如: 5">
+            </div>
+            
+            <div class="form-group">
+                <label for="rotary_V">速度 V (m/min) <span class="required">*</span></label>
+                <input type="number" id="rotary_V" step="0.1" min="0.1" value="15" placeholder="例如: 15">
+            </div>
+            
+            <div class="form-group">
+                <label for="rotary_S">行程 S (mm) <span class="required">*</span></label>
+                <input type="number" id="rotary_S" step="1" min="1" value="50" placeholder="例如: 50">
+            </div>
+            
+            <div class="form-group">
+                <label for="rotary_Mt">移动平台质量 M<sub>t</sub> (kg) <span class="required">*</span></label>
+                <input type="number" id="rotary_Mt" step="0.1" min="0.1" value="150" placeholder="例如: 150">
+            </div>
+            
+            <div class="form-group">
+                <label for="rotary_Mf">负载质量 M<sub>f</sub> (kg)</label>
+                <input type="number" id="rotary_Mf" step="0.1" min="0" value="0" placeholder="例如: 0">
+            </div>
+            
+            <div class="form-group">
+                <label for="rotary_mu">摩擦系数 μ</label>
+                <input type="number" id="rotary_mu" step="0.01" min="0" max="1" value="1" placeholder="例如: 1">
+            </div>
+            
+            <div class="form-group">
+                <label for="rotary_eta">机械传动效率 η</label>
+                <input type="number" id="rotary_eta" step="0.01" min="0" max="1" value="0.9" placeholder="例如: 0.9">
+            </div>
+            
+            <div class="form-group">
+                <label for="rotary_PB">导螺杆节距 P<sub>B</sub> (mm) <span class="required">*</span></label>
+                <input type="number" id="rotary_PB" step="0.1" min="0.1" value="5" placeholder="例如: 5">
+            </div>
+            
+            <div class="form-group">
+                <label for="rotary_DB">丝杆直径 D<sub>B</sub> (mm) <span class="required">*</span></label>
+                <input type="number" id="rotary_DB" step="0.1" min="0.1" value="20" placeholder="例如: 20">
+            </div>
+            
+            <div class="form-group">
+                <label for="rotary_MB">丝杆质量 M<sub>B</sub> (kg)</label>
+                <input type="number" id="rotary_MB" step="0.01" min="0" value="0.64" placeholder="例如: 0.64">
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+            <button onclick="calculateRotaryMotor()" class="btn btn-primary">计算</button>
+            <button onclick="resetRotaryForm()" class="btn btn-secondary">重置</button>
+        </div>
+    </div>
+
+    <!-- 结果显示 -->
+    <div id="rotary_result-container" class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none;">
+        <h2>计算结果</h2>
+        <div id="rotary_result-content"></div>
+    </div>
+</div>
+
+<script src="/static/js/tools/servo_motor_selection.js"></script>
+{% endblock %}
+

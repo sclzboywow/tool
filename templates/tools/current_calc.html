@@ -1,0 +1,1137 @@
+{% extends "base.html" %}
+
+{% block title %}常用电流计算公式 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>常用电流计算公式</h1>
+    <p class="subtitle">包含电流计算（纯电阻、感性负荷、单相/三相电动机、住宅总负荷）、导线/母线电阻计算、导线载流量计算（三相/单相）、电压损失计算（基础公式、相电压、线电压、电压损失率）、功率计算（三相/单相）、电能表倍率计算、空调器容量选择（家庭/较大场所）、制冷量单位换算等16项常用电气计算公式，支持动态矢量图展示和详细参数说明</p>
+</div>
+
+<!-- 主标签页 -->
+<div class="main-tabs">
+    <button class="main-tab active" data-tab-id="current" onclick="switchMainTab('current')">电流计算</button>
+    <button class="main-tab" data-tab-id="resistance" onclick="switchMainTab('resistance')">电阻计算</button>
+    <button class="main-tab" data-tab-id="wire_current" onclick="switchMainTab('wire_current')">载流计算</button>
+    <button class="main-tab" data-tab-id="other" onclick="switchMainTab('other')">其他计算</button>
+</div>
+
+<!-- 子标签页容器 -->
+<div class="sub-tabs-container">
+    <!-- 电流计算组 -->
+    <div id="sub-tabs-current" class="sub-tabs active">
+        <button class="sub-tab active" onclick="switchSubTab('pure_resistor')">1. 纯电阻负荷</button>
+        <button class="sub-tab" onclick="switchSubTab('inductive')">2. 感性负荷</button>
+        <button class="sub-tab" onclick="switchSubTab('single_phase_motor')">3. 单相电动机</button>
+        <button class="sub-tab" onclick="switchSubTab('three_phase_motor')">4. 三相电动机</button>
+        <button class="sub-tab" onclick="switchSubTab('residential')">5. 住宅总负荷</button>
+    </div>
+    
+    <!-- 电阻计算组 -->
+    <div id="sub-tabs-resistance" class="sub-tabs">
+        <button class="sub-tab" onclick="switchSubTab('wire_resistance')">6. 导线电阻</button>
+        <button class="sub-tab" onclick="switchSubTab('busbar_resistance')">7. 母线电阻</button>
+    </div>
+    
+    <!-- 载流计算组 -->
+    <div id="sub-tabs-wire_current" class="sub-tabs">
+        <button class="sub-tab" onclick="switchSubTab('wire_current_3phase')">8. 导线载流(三相)</button>
+        <button class="sub-tab" onclick="switchSubTab('wire_current_1phase')">9. 导线载流(单相)</button>
+    </div>
+    
+    <!-- 其他计算组 -->
+    <div id="sub-tabs-other" class="sub-tabs">
+        <button class="sub-tab" onclick="switchSubTab('voltage_loss')">10. 电压损失(基础)</button>
+        <button class="sub-tab" onclick="switchSubTab('voltage_loss_end_load')">10-1. 电压损失(相电压)</button>
+        <button class="sub-tab" onclick="switchSubTab('voltage_loss_line_voltage')">10-2. 电压损失(线电压)</button>
+        <button class="sub-tab" onclick="switchSubTab('voltage_loss_percent_formula')">10-3. 电压损失率(公式)</button>
+        <button class="sub-tab" onclick="switchSubTab('energy_meter')">11. 电能表倍率</button>
+        <button class="sub-tab" onclick="switchSubTab('power_3phase')">12. 功率计算(三相)</button>
+        <button class="sub-tab" onclick="switchSubTab('power_1phase')">13. 功率计算(单相)</button>
+        <button class="sub-tab" onclick="switchSubTab('air_conditioner_home')">14. 空调器容量(家庭)</button>
+        <button class="sub-tab" onclick="switchSubTab('air_conditioner_large')">15. 空调器容量(较大场所)</button>
+        <button class="sub-tab" onclick="switchSubTab('refrigeration_unit_convert')">16. 制冷量单位换算</button>
+    </div>
+</div>
+
+<!-- 1. 纯电阻负荷 -->
+<div id="pure_resistor" class="tab-content active">
+    <div class="tool-form">
+        <h2>纯电阻负荷电流计算</h2>
+        <p class="formula-info">公式: I = P / U</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于欧姆定律和功率公式。功率 P = UI（功率 = 电压 × 电流），对于纯电阻负荷，P = UI，因此 I = P/U。这是标准电学公式。<br>
+            <strong>适用范围：</strong>适用于纯电阻性负荷，如电热器、白炽灯等。
+        </p>
+        
+        <div class="form-group">
+            <label for="pr_power">负荷的功率 (W) <span class="required">*</span></label>
+            <input type="number" id="pr_power" step="0.01" min="0" placeholder="例如: 1000">
+        </div>
+        
+        <div class="form-group">
+            <label for="pr_voltage">电源电压 (V) <span class="required">*</span></label>
+            <input type="number" id="pr_voltage" step="0.01" min="0.01" value="220" placeholder="例如: 220">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculatePureResistor()">计算</button>
+        
+        <div id="pr_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="pr_result_value"></span> <span id="pr_result_unit"></span></div>
+            <div class="result-formula" id="pr_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. 感性负荷 -->
+<div id="inductive" class="tab-content">
+    <div class="tool-form">
+        <h2>感性负荷电流计算</h2>
+        <p class="formula-info">公式: I = P / (U × cosφ)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于有功功率公式。在交流电路中，有功功率 P = UIcosφ（有功功率 = 电压 × 电流 × 功率因数），因此 I = P/(Ucosφ)。这是标准交流电路公式。<br>
+            <strong>适用范围：</strong>适用于感性负荷，如荧光灯、镇流器等。需要考虑功率因数的影响。
+        </p>
+        
+        <div class="form-group">
+            <label for="ind_power">负荷的功率 (W) <span class="required">*</span></label>
+            <input type="number" id="ind_power" step="0.01" min="0" placeholder="例如: 1000">
+        </div>
+        
+        <div class="form-group">
+            <label for="ind_voltage">电源电压 (V) <span class="required">*</span></label>
+            <input type="number" id="ind_voltage" step="0.01" min="0.01" value="220" placeholder="例如: 220">
+        </div>
+        
+        <div class="form-group">
+            <label for="ind_cos_phi">功率因数 (cosφ) <span class="required">*</span></label>
+            <input type="number" id="ind_cos_phi" step="0.01" min="0" max="1" value="0.85" placeholder="例如: 0.85">
+            <small>通常范围: 0.7 - 0.95</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateInductive()">计算</button>
+        
+        <div id="ind_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="ind_result_value"></span> <span id="ind_result_unit"></span></div>
+            <div class="result-formula" id="ind_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. 单相电动机 -->
+<div id="single_phase_motor" class="tab-content">
+    <div class="tool-form">
+        <h2>单相电动机负荷电流计算</h2>
+        <p class="formula-info">公式: I = P / (U × η × cosφ)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于电动机功率公式。对于电动机，输出功率 P = UIηcosφ（输出功率 = 电压 × 电流 × 效率 × 功率因数），因此 I = P/(Uηcosφ)。这是标准电动机公式。<br>
+            <strong>适用范围：</strong>适用于单相电动机负荷。需要考虑机械效率(η)和功率因数(cosφ)的影响。
+        </p>
+        
+        <div class="form-group">
+            <label for="spm_power">负荷的功率 (W) <span class="required">*</span></label>
+            <input type="number" id="spm_power" step="0.01" min="0" placeholder="例如: 1000">
+        </div>
+        
+        <div class="form-group">
+            <label for="spm_voltage">电源电压 (V) <span class="required">*</span></label>
+            <input type="number" id="spm_voltage" step="0.01" min="0.01" value="220" placeholder="例如: 220">
+        </div>
+        
+        <div class="form-group">
+            <label for="spm_efficiency">效率 (η) <span class="required">*</span></label>
+            <input type="number" id="spm_efficiency" step="0.01" min="0" max="1" value="0.875" placeholder="例如: 0.875">
+            <small>机械效率，通常范围: 0.7 - 0.95，默认值: 0.875</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="spm_cos_phi">功率因数 (cosφ) <span class="required">*</span></label>
+            <input type="number" id="spm_cos_phi" step="0.01" min="0" max="1" value="0.89" placeholder="例如: 0.89">
+            <small>功率因数，通常范围: 0.7 - 0.95，默认值: 0.89</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateSinglePhaseMotor()">计算</button>
+        
+        <div id="spm_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="spm_result_value"></span> <span id="spm_result_unit"></span></div>
+            <div class="result-formula" id="spm_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. 三相电动机 -->
+<div id="three_phase_motor" class="tab-content">
+    <div class="tool-form">
+        <h2>三相电动机负荷电流计算</h2>
+        <p class="formula-info">公式: I = P / (√3 × U × η × cosφ)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于三相功率公式。三相有功功率 P = √3 UIcosφ，考虑效率后，输出功率 P = √3 UIηcosφ，因此 I = P/(√3Uηcosφ)。这是标准三相电路公式。√3 ≈ 1.732。<br>
+            <strong>适用范围：</strong>适用于三相电动机负荷。需要考虑机械效率(η)和功率因数(cosφ)的影响。
+        </p>
+        
+        <div class="form-group">
+            <label for="tpm_power">负荷的功率 (W) <span class="required">*</span></label>
+            <input type="number" id="tpm_power" step="0.01" min="0" placeholder="例如: 11000">
+        </div>
+        
+        <div class="form-group">
+            <label for="tpm_voltage">电源电压 (V) <span class="required">*</span></label>
+            <input type="number" id="tpm_voltage" step="0.01" min="0.01" value="380" placeholder="例如: 380">
+        </div>
+        
+        <div class="form-group">
+            <label for="tpm_efficiency">效率 (η) <span class="required">*</span></label>
+            <input type="number" id="tpm_efficiency" step="0.01" min="0" max="1" value="0.875" placeholder="例如: 0.875">
+            <small>机械效率，通常范围: 0.7 - 0.95，默认值: 0.875</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="tpm_cos_phi">功率因数 (cosφ) <span class="required">*</span></label>
+            <input type="number" id="tpm_cos_phi" step="0.01" min="0" max="1" value="0.89" placeholder="例如: 0.89">
+            <small>功率因数，通常范围: 0.7 - 0.95，默认值: 0.89</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateThreePhaseMotor()">计算</button>
+        
+        <div id="tpm_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="tpm_result_value"></span> <span id="tpm_result_unit"></span></div>
+            <div class="result-formula" id="tpm_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. 住宅总负荷 -->
+<div id="residential" class="tab-content">
+    <div class="tool-form">
+        <h2>住宅总负荷电流计算</h2>
+        <p class="formula-info">公式: I<sub>js</sub> = P<sub>js</sub> / (U × cosφ)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>物理来源：</strong>基于负荷计算和同期系数理论。K<sub>c</sub>是同期系数（同时使用系数），反映负荷不同时使用的概率。这是电力负荷计算的标准方法，依据国家标准 GB 50052-2009《供配电系统设计规范》等。<br>
+            <strong>计算步骤：</strong><br>
+            第一步：计算住宅用电计算负荷 P<sub>js</sub> = K<sub>c</sub> × P<sub>Σ</sub><br>
+            第二步：计算住宅用电计算电流 I<sub>js</sub> = P<sub>js</sub> / (U × cosφ)<br>
+            <strong>说明：</strong>同期系数K<sub>c</sub>通常范围0.4~0.6，电器越多此值越小，反之此值越大。
+        </p>
+        
+        <div class="form-group">
+            <label for="res_total_power">所有家用电器功率总和 P<sub>Σ</sub> (W) <span class="required">*</span></label>
+            <input type="number" id="res_total_power" step="0.01" min="0" placeholder="例如: 5000">
+        </div>
+        
+        <div class="form-group">
+            <label for="res_kc">同期系数 (K<sub>c</sub>) <span class="required">*</span></label>
+            <input type="number" id="res_kc" step="0.01" min="0" max="1" value="0.5" placeholder="例如: 0.5">
+            <small>通常范围: 0.4 - 0.6，电器越多此值越小，反之此值越大</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="res_voltage">电源电压 (V) <span class="required">*</span></label>
+            <input type="number" id="res_voltage" step="0.01" min="0.01" value="220" placeholder="例如: 220">
+        </div>
+        
+        <div class="form-group">
+            <label for="res_cos_phi">功率因数 (cosφ) <span class="required">*</span></label>
+            <input type="number" id="res_cos_phi" step="0.01" min="0" max="1" value="0.8" placeholder="例如: 0.8">
+            <small>通常范围: 0.8 - 0.9</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateResidential()">计算</button>
+        
+        <div id="res_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="res_result_value"></span> <span id="res_result_unit"></span></div>
+            <div class="result-formula" id="res_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 6. 导线电阻计算 -->
+<div id="wire_resistance" class="tab-content">
+    <div class="tool-form">
+        <h2>导线电阻计算</h2>
+        <p class="formula-info">公式1: R<sub>0</sub> = ρ / S (Ω/km)<br>公式2: R<sub>t</sub> = R<sub>20</sub>[1 + α<sub>20</sub>(t-20)] (温度修正)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong><br>
+            <strong>公式1：</strong>基于电阻公式 R = ρL/S（电阻 = 电阻率 × 长度 / 截面积）。对于单位长度(L=1km)，R = ρ/S。这是标准物理公式（欧姆定律）。<br>
+            <strong>公式2：</strong>基于电阻温度系数理论。电阻随温度变化：Rt = R0[1 + α(t-t0)]，其中α是温度系数，这是材料的物理性质。这是标准物理公式。<br>
+            <strong>参数说明：</strong><br>
+            • R<sub>0</sub>为导线的交流电阻(Ω/km)，ρ为导线材料的电阻率(Ω·mm²/km)，S为导线标称截面积(mm²)。<br>
+            • R<sub>t</sub>为温度t℃时的电阻(Ω/km)，R<sub>20</sub>为温度为20℃时的电阻(Ω/km)，α<sub>20</sub>为电阻的温度系数。
+        </p>
+        
+        <div class="form-group">
+            <label>计算方式</label>
+            <select id="wr_calc_type" onchange="toggleWireResistanceType()">
+                <option value="basic">基础电阻计算 (Ro = ρ / S)</option>
+                <option value="temperature">温度修正计算 (Rt = R20[1 + a20(t-20)])</option>
+            </select>
+        </div>
+        
+        <div id="wr_basic">
+            <div class="form-group">
+                <label for="wr_rho">导线材料的电阻率 ρ (Ω·mm²/km) <span class="required">*</span></label>
+                <input type="number" id="wr_rho" step="0.01" min="0.01" placeholder="例如: 17.5 (铜)">
+                <small>铜: 17.5, 铝: 28.3</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="wr_area">导线标称截面积 S (mm²) <span class="required">*</span></label>
+                <input type="number" id="wr_area" step="0.01" min="0.01" placeholder="例如: 10">
+            </div>
+        </div>
+        
+        <div id="wr_temperature" style="display: none;">
+            <div class="form-group">
+                <label for="wr_r20">温度为20℃时的电阻 R<sub>20</sub> (Ω/km) <span class="required">*</span></label>
+                <input type="number" id="wr_r20" step="0.0001" min="0.0001" placeholder="例如: 1.75">
+            </div>
+            
+            <div class="form-group">
+                <label for="wr_a20">电阻的温度系数 α<sub>20</sub> <span class="required">*</span></label>
+                <input type="number" id="wr_a20" step="0.0001" value="0.004" placeholder="例如: 0.004">
+                <small>铜: 0.004, 铝: 0.004</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="wr_temperature">温度 t (℃) <span class="required">*</span></label>
+                <input type="number" id="wr_temperature" step="0.1" value="20" placeholder="例如: 25">
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateWireResistance()">计算</button>
+        
+        <div id="wr_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="wr_result_value"></span> <span id="wr_result_unit"></span></div>
+            <div class="result-formula" id="wr_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 7. 母线电阻计算 -->
+<div id="busbar_resistance" class="tab-content">
+    <div class="tool-form">
+        <h2>母线电阻计算</h2>
+        <p class="formula-info">公式: R<sub>0</sub> = 1000 / (r × S) (mΩ/m)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于电导率公式。电阻 R = 1/(γS)（电阻 = 1/(电导率 × 截面积)），其中γ是电导率。经过单位换算后得到 R = 1000/(γ×S) (mΩ/m)。这是标准物理公式（电导率理论）。<br>
+            <strong>参数说明：</strong>R<sub>0</sub>为母线的电阻值(mΩ/m)，r为母线电导率，S为导线面积(mm²)。
+        </p>
+        
+        <div class="form-group">
+            <label for="br_conductivity">母线电导率 r <span class="required">*</span></label>
+            <select id="br_conductivity">
+                <option value="54">铜 (54)</option>
+                <option value="32">铝 (32)</option>
+            </select>
+            <small>铜: 54, 铝: 32</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="br_area">导线面积 S (mm²) <span class="required">*</span></label>
+            <input type="number" id="br_area" step="0.01" min="0.01" placeholder="例如: 100">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateBusbarResistance()">计算</button>
+        
+        <div id="br_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="br_result_value"></span> <span id="br_result_unit"></span></div>
+            <div class="result-formula" id="br_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 8. 按安全载流量选择导线截面（三相电路） -->
+<div id="wire_current_3phase" class="tab-content">
+    <div class="tool-form">
+        <h2>按安全载流量选择导线截面（三相电路）</h2>
+        <p class="formula-info">公式1: I<sub>js</sub> = P<sub>js</sub> / (√3 × U<sub>e</sub> × cosφ)<br>公式2: I<sub>js</sub> = S<sub>js</sub> / (√3 × U<sub>e</sub>)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>物理来源：</strong>基于三相功率公式 P = √3 UIcosφ，因此 I = P/(√3Ucosφ)。这是标准三相电路公式。<br>
+            <strong>说明：</strong>按安全载流量选择导线截面，应满足下式要求：K × I<sub>e</sub> ≥ I<sub>js</sub><br>
+            式中：I<sub>e</sub>为导线安全载流量(A)；K为当环境温度、穿管敷设等因素与标准情况不同时的修正系数（见表3-18）；<br>
+            I<sub>js</sub>为线路计算电流(A)，其中P<sub>js</sub>为用有功功率表示的计算负荷(KW)，S<sub>js</sub>为用视在功率表示的计算负荷(KVA)。
+        </p>
+        
+        <div class="form-group">
+            <label>计算方式</label>
+            <select id="wc3_type" onchange="toggleWireCurrent3Type()">
+                <option value="power">使用有功功率</option>
+                <option value="apparent">使用视在功率</option>
+            </select>
+        </div>
+        
+        <div id="wc3_power">
+            <div class="form-group">
+                <label for="wc3_power_input">用有功功率表示的计算负荷 P<sub>js</sub> (KW) <span class="required">*</span></label>
+                <input type="number" id="wc3_power_input" step="0.01" min="0" placeholder="例如: 15">
+            </div>
+        </div>
+        
+        <div id="wc3_apparent" style="display: none;">
+            <div class="form-group">
+                <label for="wc3_apparent_power">用视在功率表示的计算负荷 S<sub>js</sub> (KVA) <span class="required">*</span></label>
+                <input type="number" id="wc3_apparent_power" step="0.01" min="0" placeholder="例如: 15">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="wc3_voltage">电压 U<sub>e</sub> (V) <span class="required">*</span></label>
+            <input type="number" id="wc3_voltage" step="0.01" min="0.01" value="380" placeholder="例如: 380">
+        </div>
+        
+        <div class="form-group" id="wc3_cos_phi_group">
+            <label for="wc3_cos_phi">功率因数 (cosφ) <span class="required">*</span></label>
+            <input type="number" id="wc3_cos_phi" step="0.01" min="0" max="1" value="0.89" placeholder="例如: 0.89">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateWireCurrent3Phase()">计算</button>
+        
+        <div id="wc3_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="wc3_result_value"></span> <span id="wc3_result_unit"></span></div>
+            <div class="result-formula" id="wc3_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 9. 按安全载流量选择导线截面（单相电路） -->
+<div id="wire_current_1phase" class="tab-content">
+    <div class="tool-form">
+        <h2>按安全载流量选择导线截面（单相电路）</h2>
+        <p class="formula-info">公式1: I<sub>js</sub> = P<sub>js</sub> / (U<sub>e</sub> × cosφ)<br>公式2: I<sub>js</sub> = S<sub>js</sub> / U<sub>e</sub></p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>物理来源：</strong>基于三相功率公式 P = √3 UIcosφ，因此 I = P/(√3Ucosφ)。这是标准三相电路公式。<br>
+            <strong>说明：</strong>按安全载流量选择导线截面，应满足下式要求：K × I<sub>e</sub> ≥ I<sub>js</sub><br>
+            式中：I<sub>e</sub>为导线安全载流量(A)；K为当环境温度、穿管敷设等因素与标准情况不同时的修正系数（见表3-18）；<br>
+            I<sub>js</sub>为线路计算电流(A)，其中P<sub>js</sub>为用有功功率表示的计算负荷(KW)，S<sub>js</sub>为用视在功率表示的计算负荷(KVA)。
+        </p>
+        
+        <div class="form-group">
+            <label>计算方式</label>
+            <select id="wc1_type" onchange="toggleWireCurrent1Type()">
+                <option value="power">使用有功功率</option>
+                <option value="apparent">使用视在功率</option>
+            </select>
+        </div>
+        
+        <div id="wc1_power">
+            <div class="form-group">
+                <label for="wc1_power_input">用有功功率表示的计算负荷 P<sub>js</sub> (KW) <span class="required">*</span></label>
+                <input type="number" id="wc1_power_input" step="0.01" min="0" placeholder="例如: 5">
+            </div>
+        </div>
+        
+        <div id="wc1_apparent" style="display: none;">
+            <div class="form-group">
+                <label for="wc1_apparent_power">用视在功率表示的计算负荷 S<sub>js</sub> (KVA) <span class="required">*</span></label>
+                <input type="number" id="wc1_apparent_power" step="0.01" min="0" placeholder="例如: 5">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="wc1_voltage">电压 U<sub>e</sub> (V) <span class="required">*</span></label>
+            <input type="number" id="wc1_voltage" step="0.01" min="0.01" value="220" placeholder="例如: 220">
+        </div>
+        
+        <div class="form-group" id="wc1_cos_phi_group">
+            <label for="wc1_cos_phi">功率因数 (cosφ) <span class="required">*</span></label>
+            <input type="number" id="wc1_cos_phi" step="0.01" min="0" max="1" value="0.8" placeholder="例如: 0.8">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateWireCurrent1Phase()">计算</button>
+        
+        <div id="wc1_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="wc1_result_value"></span> <span id="wc1_result_unit"></span></div>
+            <div class="result-formula" id="wc1_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 10. 电压损失计算 -->
+<div id="voltage_loss" class="tab-content">
+    <div class="tool-form">
+        <h2>电压损失计算（基础公式）</h2>
+        <p class="formula-info">公式1: ΔU = U<sub>1</sub> - U<sub>2</sub> (V)<br>公式2: ΔU% = (U<sub>1</sub> - U<sub>2</sub>) / U<sub>e</sub> × 100%</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>物理来源：</strong>电压损失是送电端电压与受电端电压的差值，这是基本定义。电压损失率用于评估电压质量，依据国家标准 GB/T 12325-2008《电能质量 供电电压偏差》。<br>
+            <strong>说明：</strong><br>
+            <strong>1. 电压损失（绝对值）：</strong>电压损失是指送电端电压与受电端电压之差，即 ΔU = U<sub>1</sub> - U<sub>2</sub><br>
+            <strong>2. 电压损失率（百分比）：</strong>通常用其百分数表示，即电压损失率△U% = (U<sub>1</sub> - U<sub>2</sub>) / U<sub>e</sub> × 100%<br>
+            <strong>式中：</strong>U<sub>1</sub>为送电端电压（V），U<sub>2</sub>为受电端电压（V），U<sub>e</sub>为线路额定电压（V）<br>
+            <strong>注意：</strong>如需根据线路参数（电阻、电抗）计算，请使用下方"10-1"或"10-2"公式。
+        </p>
+        
+        <div class="form-group">
+            <label>计算方式</label>
+            <select id="vl_type" onchange="toggleVoltageLossType()">
+                <option value="absolute">电压损失 (V)</option>
+                <option value="percent">电压损失率 (%)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="vl_u1">送电端电压 U1 (V) <span class="required">*</span></label>
+            <input type="number" id="vl_u1" step="0.01" placeholder="例如: 400">
+        </div>
+        
+        <div class="form-group">
+            <label for="vl_u2">受电端电压 U2 (V) <span class="required">*</span></label>
+            <input type="number" id="vl_u2" step="0.01" placeholder="例如: 380">
+        </div>
+        
+        <div class="form-group" id="vl_ue_group" style="display: none;">
+            <label for="vl_ue">线路额定电压 Ue (V) <span class="required">*</span></label>
+            <input type="number" id="vl_ue" step="0.01" min="0.01" value="380" placeholder="例如: 380">
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateVoltageLoss()">计算</button>
+        
+        <div id="vl_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="vl_result_value"></span> <span id="vl_result_unit"></span></div>
+            <div class="result-formula" id="vl_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 10-1. 负荷在末端的线路电压损失计算 -->
+<div id="voltage_loss_end_load" class="tab-content">
+    <div class="tool-form">
+        <h2>负荷在末端的线路电压损失计算（相电压）</h2>
+        <p class="formula-info">公式1: ΔU<sub>x</sub> = I (R cosφ + X sinφ)<br>公式2: ΔU<sub>x</sub> ≈ (PR + QX) / (√3 × U<sub>2</sub>) ≈ (PR + QX) / (√3 × U<sub>e</sub>)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #d1ecf1; border-left: 4px solid #17a2b8; border-radius: 4px;">
+            <strong>物理来源：</strong>基于基尔霍夫电压定律和相量分析，考虑电阻和电抗的电压降。依据国家标准 GB/T 12325-2008《电能质量 供电电压偏差》和行业标准 DL/T 5220-2005《10kV及以下架空配电线路设计技术规程》。<br>
+            <strong>说明：</strong>此公式计算的是<strong>相电压</strong>的电压损失（ΔU<sub>x</sub>）。<br>
+            <strong>电路说明：</strong>末端接负荷的三相电路，U<sub>1</sub>为变电所出口电压（送电端电压），U<sub>2</sub>为负荷处的电压（受电端电压），均对中性点电压而言，单位为KV。<br>
+            <strong>工程简化：</strong>在工程计算中，允许略去（I×X×sinφ - I×R×cosφ）部分（由此引起的误差不超过实际电压降的5%），因此线路每相电压可按简化公式计算。<br>
+            <strong>与10-2的关系：</strong>线电压损失 ΔU<sub>1</sub> = √3 × ΔU<sub>x</sub>（线电压损失 = √3 × 相电压损失）<br>
+            <strong>式中：</strong>R、X分别为每条导线的电阻值和电抗值（Ω），I为负荷电流（线电流，A），P、Q分别为三相负荷总有功功率（KW）和总无功功率（KVar）
+        </p>
+        
+        <!-- 固定电压矢量图说明（基于公式计算） -->
+        <div style="margin: 2rem 0; padding: 1.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <h4 style="margin-bottom: 1rem; color: #2c3e50; text-align: center;">电压矢量图说明（基于公式计算）</h4>
+            <p style="margin-bottom: 1rem; color: #7f8c8d; font-size: 0.9rem; text-align: center;">
+                示例参数：U₂=220V, I=100A, R=0.1Ω, X=0.05Ω, cosφ=0.85
+            </p>
+            <svg id="fixed_phasor_diagram" width="100%" height="450" viewBox="0 0 800 450" style="border: 1px solid #ddd; border-radius: 4px; background: #fafafa;">
+                <!-- SVG内容将由JavaScript根据公式动态生成 -->
+            </svg>
+            <div style="margin-top: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 4px;">
+                <p style="margin: 0.5rem 0; color: #2c3e50; font-size: 0.9rem;">
+                    <strong>图例：</strong>
+                    <span style="color: #3498db;">●</span> U₂ - 受电端电压（参考矢量）
+                    <span style="color: #9b59b6;">●</span> U₁ - 送电端电压
+                    <span style="color: #3498db;">●</span> I - 电流
+                    <span style="color: #27ae60;">●</span> IR - 电阻压降
+                    <span style="color: #3498db;">●</span> IX - 电抗压降
+                    <span style="color: #e74c3c;">●</span> 红色箭头 - 分量标注
+                </p>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>计算方式</label>
+            <select id="vlel_type" onchange="toggleVoltageLossEndLoadType()">
+                <option value="power">使用功率计算 (PR + QX)</option>
+                <option value="current">使用电流计算 (I (R cosφ + X sinφ))</option>
+            </select>
+        </div>
+        
+        <!-- 功率计算方式 -->
+        <div id="vlel_power">
+            <div class="form-group">
+                <label for="vlel_power_input">有功功率 P (KW) <span class="required">*</span></label>
+                <input type="number" id="vlel_power_input" step="0.01" min="0" placeholder="例如: 100">
+            </div>
+            
+            <div class="form-group">
+                <label for="vlel_reactive_power">无功功率 Q (KVar)</label>
+                <input type="number" id="vlel_reactive_power" step="0.01" min="0" placeholder="例如: 50">
+                <small>如果不填写，将通过有功功率和功率因数自动计算</small>
+            </div>
+            
+            <div class="form-group" id="vlel_cos_phi_group">
+                <label for="vlel_cos_phi">功率因数 cosφ</label>
+                <input type="number" id="vlel_cos_phi" step="0.01" min="0" max="1" value="0.85" placeholder="例如: 0.85">
+                <small>当未填写无功功率时，需要此参数来计算无功功率</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="vlel_resistance">线路电阻 R (Ω) <span class="required">*</span></label>
+                <input type="number" id="vlel_resistance" step="0.0001" min="0.0001" placeholder="例如: 0.1">
+            </div>
+            
+            <div class="form-group">
+                <label for="vlel_reactance">线路电抗 X (Ω) <span class="required">*</span></label>
+                <input type="number" id="vlel_reactance" step="0.0001" placeholder="例如: 0.05">
+            </div>
+            
+            <div class="form-group">
+                <label for="vlel_voltage">线路电压 U (V) <span class="required">*</span></label>
+                <input type="number" id="vlel_voltage" step="0.01" min="0.01" value="380" placeholder="例如: 380">
+                <small>可以使用受电端电压U<sub>2</sub>或线路额定电压U<sub>e</sub></small>
+            </div>
+        </div>
+        
+        <!-- 电流计算方式 -->
+        <div id="vlel_current" style="display: none;">
+            <div class="form-group">
+                <label for="vlel_current_input">电流 I (A) <span class="required">*</span></label>
+                <input type="number" id="vlel_current_input" step="0.01" min="0.01" placeholder="例如: 150">
+            </div>
+            
+            <div class="form-group">
+                <label for="vlel_resistance2">线路电阻 R (Ω) <span class="required">*</span></label>
+                <input type="number" id="vlel_resistance2" step="0.0001" min="0.0001" placeholder="例如: 0.1">
+            </div>
+            
+            <div class="form-group">
+                <label for="vlel_reactance2">线路电抗 X (Ω) <span class="required">*</span></label>
+                <input type="number" id="vlel_reactance2" step="0.0001" placeholder="例如: 0.05">
+            </div>
+            
+            <div class="form-group">
+                <label for="vlel_cos_phi2">功率因数 cosφ <span class="required">*</span></label>
+                <input type="number" id="vlel_cos_phi2" step="0.01" min="0" max="1" value="0.85" placeholder="例如: 0.85">
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateVoltageLossEndLoad()">计算</button>
+        
+        <div id="vlel_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="vlel_result_value"></span> <span id="vlel_result_unit"></span></div>
+            <div class="result-formula" id="vlel_result_formula"></div>
+            
+            <div id="vlel_phasor_diagram" style="margin-top: 2rem; padding: 1rem; background: white; border-radius: 8px;">
+                <h4 style="margin-bottom: 1rem; color: #2c3e50;">电压矢量图</h4>
+                <svg id="vlel_phasor_svg" width="100%" height="500" viewBox="0 0 800 500" style="border: 1px solid #ddd; border-radius: 4px; background: #fafafa;">
+                    <!-- SVG内容将由JavaScript动态生成 -->
+                </svg>
+                <p style="margin-top: 1rem; color: #7f8c8d; font-size: 0.9rem; padding: 0.75rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <strong>说明：</strong>图中，U<sub>1</sub>为变电所出口电压（送电端电压），U<sub>2</sub>为负荷处的电压（受电端电压），均对中性点电压而言，单位为KV。<br>
+                    在工程计算中，允许略去（I×X×sinφ - I×R×cosφ）部分（由此引起的误差不超过实际电压降的5%），因此线路每相电压可按简化公式计算。
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 10-2. 线电压的电压损失计算 -->
+<div id="voltage_loss_line_voltage" class="tab-content">
+    <div class="tool-form">
+        <h2>线电压的电压损失计算</h2>
+        <p class="formula-info">公式1: △U<sub>1</sub> = √3 × I (R cosφ + X sinφ)<br>公式2: △U<sub>1</sub> ≈ (PR + QX) / U<sub>2</sub> ≈ (PR + QX) / U<sub>e</sub></p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #d1ecf1; border-left: 4px solid #17a2b8; border-radius: 4px;">
+            <strong>物理来源：</strong>基于三相电路理论，线电压 = √3 × 相电压，因此线电压损失 = √3 × 相电压损失。依据国家标准 GB/T 12325-2008《电能质量 供电电压偏差》。<br>
+            <strong>说明：</strong>用线电压计算公式，此公式计算的是<strong>线电压</strong>的电压损失（△U<sub>1</sub>）。<br>
+            <strong>与10-1的关系：</strong>△U<sub>1</sub> = √3 × △U<sub>x</sub>（线电压损失 = √3 × 相电压损失）<br>
+            <strong>式中：</strong><br>
+            • △U<sub>1</sub>：线电压的电压损失（V）<br>
+            • △U<sub>x</sub>：相电压的电压损失（V）<br>
+            • R、X：分别为每条导线的电阻值和电抗值（Ω）<br>
+            • U<sub>e</sub>：线路额定线电压（KV）<br>
+            • cosφ：负荷的功率因数<br>
+            • I：负荷电流（线电流，A），I = P / (√3 × U<sub>e</sub> × cosφ)<br>
+            • P、Q：分别为三相负荷总有功功率（KW）和总无功功率（KVar）
+        </p>
+        
+        <div class="form-group">
+            <label>计算方式</label>
+            <select id="vllv_type" onchange="toggleVoltageLossLineVoltageType()">
+                <option value="power">使用功率计算 (PR + QX)</option>
+                <option value="current">使用电流计算 (√3 × I (R cosφ + X sinφ))</option>
+            </select>
+        </div>
+        
+        <!-- 功率计算方式 -->
+        <div id="vllv_power">
+            <div class="form-group">
+                <label for="vllv_power_input">有功功率 P (KW) <span class="required">*</span></label>
+                <input type="number" id="vllv_power_input" step="0.01" min="0" placeholder="例如: 100">
+            </div>
+            
+            <div class="form-group">
+                <label for="vllv_reactive_power">无功功率 Q (KVar)</label>
+                <input type="number" id="vllv_reactive_power" step="0.01" min="0" placeholder="例如: 50">
+                <small>如果不填写，将通过有功功率和功率因数自动计算</small>
+            </div>
+            
+            <div class="form-group" id="vllv_cos_phi_group">
+                <label for="vllv_cos_phi">功率因数 cosφ</label>
+                <input type="number" id="vllv_cos_phi" step="0.01" min="0" max="1" value="0.85" placeholder="例如: 0.85">
+                <small>当未填写无功功率时，需要此参数来计算无功功率</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="vllv_resistance">线路电阻 R (Ω) <span class="required">*</span></label>
+                <input type="number" id="vllv_resistance" step="0.0001" min="0.0001" placeholder="例如: 0.1">
+            </div>
+            
+            <div class="form-group">
+                <label for="vllv_reactance">线路电抗 X (Ω) <span class="required">*</span></label>
+                <input type="number" id="vllv_reactance" step="0.0001" placeholder="例如: 0.05">
+            </div>
+            
+            <div class="form-group">
+                <label for="vllv_voltage">受电端电压 U<sub>2</sub> (V) <span class="required">*</span></label>
+                <input type="number" id="vllv_voltage" step="0.01" min="0.01" value="380" placeholder="例如: 380">
+            </div>
+        </div>
+        
+        <!-- 电流计算方式 -->
+        <div id="vllv_current" style="display: none;">
+            <div class="form-group">
+                <label for="vllv_current_input">电流 I (A) <span class="required">*</span></label>
+                <input type="number" id="vllv_current_input" step="0.01" min="0.01" placeholder="例如: 150">
+            </div>
+            
+            <div class="form-group">
+                <label for="vllv_resistance2">线路电阻 R (Ω) <span class="required">*</span></label>
+                <input type="number" id="vllv_resistance2" step="0.0001" min="0.0001" placeholder="例如: 0.1">
+            </div>
+            
+            <div class="form-group">
+                <label for="vllv_reactance2">线路电抗 X (Ω) <span class="required">*</span></label>
+                <input type="number" id="vllv_reactance2" step="0.0001" placeholder="例如: 0.05">
+            </div>
+            
+            <div class="form-group">
+                <label for="vllv_cos_phi2">功率因数 cosφ <span class="required">*</span></label>
+                <input type="number" id="vllv_cos_phi2" step="0.01" min="0" max="1" value="0.85" placeholder="例如: 0.85">
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateVoltageLossLineVoltage()">计算</button>
+        
+        <div id="vllv_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="vllv_result_value"></span> <span id="vllv_result_unit"></span></div>
+            <div class="result-formula" id="vllv_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 10-3. 电压损失率公式计算 -->
+<div id="voltage_loss_percent_formula" class="tab-content">
+    <div class="tool-form">
+        <h2>电压损失率公式计算</h2>
+        <p class="formula-info">公式: △U% = P × (R cosφ + X sinφ) / (10 × U<sub>e</sub> × cosφ)</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
+            <strong>物理来源：</strong>将电压损失公式转换为百分比形式，用于工程计算。依据行业标准 DL/T 5220-2005《10kV及以下架空配电线路设计技术规程》。<br>
+            <strong>说明：</strong>此公式直接计算电压损失百分比，适用于已知线路参数和功率的情况。<br>
+            <strong>与其他公式的关系：</strong>此公式与10-1、10-2基于相同的物理原理，但直接给出百分比结果。<br>
+            <strong>式中：</strong><br>
+            • △U%：电压损失率（%）<br>
+            • P：三相负荷总有功功率（KW）<br>
+            • R、X：分别为每条导线的电阻值和电抗值（Ω）<br>
+            • U<sub>e</sub>：线路额定线电压（KV）<br>
+            • cosφ：负荷的功率因数<br>
+            • I：负荷电流（线电流，A），I = P / (√3 × U<sub>e</sub> × cosφ)
+        </p>
+        
+        <div class="form-group">
+            <label for="vlpf_power">有功功率 P (KW) <span class="required">*</span></label>
+            <input type="number" id="vlpf_power" step="0.01" min="0" placeholder="例如: 100">
+        </div>
+        
+        <div class="form-group">
+            <label for="vlpf_resistance">线路电阻 R (Ω) <span class="required">*</span></label>
+            <input type="number" id="vlpf_resistance" step="0.0001" min="0.0001" placeholder="例如: 0.1">
+        </div>
+        
+        <div class="form-group">
+            <label for="vlpf_reactance">线路电抗 X (Ω) <span class="required">*</span></label>
+            <input type="number" id="vlpf_reactance" step="0.0001" placeholder="例如: 0.05">
+        </div>
+        
+        <div class="form-group">
+            <label for="vlpf_cos_phi">功率因数 cosφ <span class="required">*</span></label>
+            <input type="number" id="vlpf_cos_phi" step="0.01" min="0" max="1" value="0.85" placeholder="例如: 0.85">
+        </div>
+        
+        <div class="form-group">
+            <label for="vlpf_ue">线路额定电压 U<sub>e</sub> (KV) <span class="required">*</span></label>
+            <input type="number" id="vlpf_ue" step="0.01" min="0.01" value="0.38" placeholder="例如: 0.38">
+            <small>注意：单位是KV，例如380V应输入0.38</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateVoltageLossPercentFormula()">计算</button>
+        
+        <div id="vlpf_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="vlpf_result_value"></span> <span id="vlpf_result_unit"></span></div>
+            <div class="result-formula" id="vlpf_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 11. 电能表倍率计算 -->
+<div id="energy_meter" class="tab-content">
+    <div class="tool-form">
+        <h2>电能表所测电量计算</h2>
+        <p class="formula-info">公式: K = (K<sub>TA</sub>/K<sub>TAe</sub>) × (K<sub>TV</sub>/K<sub>TVe</sub>) × K<sub>j</sub></p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>物理来源：</strong>基于互感器变比计算。电能表通过电流互感器(CT)和电压互感器(PT)接入，倍率 = CT变比 × PT变比。这是电能计量标准方法，依据国家标准 DL/T 448-2016《电能计量装置技术管理规程》等。<br>
+            <strong>参数说明：</strong><br>
+            KTA、KTV：实际使用的电流互感器和电压互感器的变比；<br>
+            KTAe、KTVe：电能表铭牌上标注的电流互感器和电压互感器的变比；对于万用互感器接入直接接入的电能表，因其铭牌上没有标注电流互感器、电压互感器的额定变比，其KTAe=KTVe=1；<br>
+            Kj：计能器倍率，即读数盘方框上标注的倍数；没有标注计能器倍率的电能表，其Kj=1。
+        </p>
+        
+        <div class="form-group">
+            <label for="em_kta">实际电流互感器变比 (KTA) <span class="required">*</span></label>
+            <input type="number" id="em_kta" step="0.01" min="0.01" placeholder="例如: 40 (200/5)">
+            <small>实际使用的电流互感器变比，例如200/5=40</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="em_ktae">电能表铭牌电流互感器变比 (KTAe)</label>
+            <input type="number" id="em_ktae" step="0.01" min="0.01" value="1" placeholder="例如: 1">
+            <small>未标注时默认为1</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="em_ktv">实际电压互感器变比 (KTV) <span class="required">*</span></label>
+            <input type="number" id="em_ktv" step="0.01" min="0.01" placeholder="例如: 60 (6000/100)">
+            <small>实际使用的电压互感器变比，例如6000/100=60</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="em_ktve">电能表铭牌电压互感器变比 (KTVe)</label>
+            <input type="number" id="em_ktve" step="0.01" min="0.01" value="1" placeholder="例如: 1">
+            <small>未标注时默认为1</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="em_kj">计能器倍率 (Kj)</label>
+            <input type="number" id="em_kj" step="0.01" min="0.01" value="1" placeholder="例如: 1">
+            <small>读数盘方框上标注的倍数，未标注时默认为1</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateEnergyMeter()">计算</button>
+        
+        <div id="em_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="em_result_value"></span> <span id="em_result_unit"></span></div>
+            <div class="result-formula" id="em_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 12. 三相功率计算（从电流） -->
+<div id="power_3phase" class="tab-content">
+    <div class="tool-form">
+        <h2>三相功率计算（从电流）</h2>
+        <p class="formula-info">公式: P = √3 × U × I × cosφ × η</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于三相功率公式 P = √3 UIcosφ，考虑效率后得到输出功率 P = √3 UIηcosφ。这是标准三相电路公式。
+        </p>
+        
+        <div class="form-group">
+            <label for="p3_current">电流 (A) <span class="required">*</span></label>
+            <input type="number" id="p3_current" step="0.01" min="0.01" placeholder="例如: 30">
+        </div>
+        
+        <div class="form-group">
+            <label for="p3_voltage">电压 (V) <span class="required">*</span></label>
+            <input type="number" id="p3_voltage" step="0.01" min="0.01" value="380" placeholder="例如: 380">
+        </div>
+        
+        <div class="form-group">
+            <label for="p3_cos_phi">功率因数 (cosφ) <span class="required">*</span></label>
+            <input type="number" id="p3_cos_phi" step="0.01" min="0" max="1" value="0.85" placeholder="例如: 0.85">
+        </div>
+        
+        <div class="form-group">
+            <label for="p3_efficiency">效率 (η)</label>
+            <input type="number" id="p3_efficiency" step="0.01" min="0" max="1" value="1.0" placeholder="例如: 0.92">
+            <small>未指定时默认为1.0</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculatePower3Phase()">计算</button>
+        
+        <div id="p3_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="p3_result_value"></span> <span id="p3_result_unit"></span></div>
+            <div class="result-formula" id="p3_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 13. 单相功率计算（从电流） -->
+<div id="power_1phase" class="tab-content">
+    <div class="tool-form">
+        <h2>单相功率计算（从电流）</h2>
+        <p class="formula-info">公式: P = U × I × cosφ × η</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>物理来源：</strong>基于单相功率公式 P = UIcosφ，考虑效率后得到输出功率 P = UIηcosφ。这是标准单相电路公式。
+        </p>
+        
+        <div class="form-group">
+            <label for="p1_current">电流 (A) <span class="required">*</span></label>
+            <input type="number" id="p1_current" step="0.01" min="0.01" placeholder="例如: 10">
+        </div>
+        
+        <div class="form-group">
+            <label for="p1_voltage">电压 (V) <span class="required">*</span></label>
+            <input type="number" id="p1_voltage" step="0.01" min="0.01" value="220" placeholder="例如: 220">
+        </div>
+        
+        <div class="form-group">
+            <label for="p1_cos_phi">功率因数 (cosφ) <span class="required">*</span></label>
+            <input type="number" id="p1_cos_phi" step="0.01" min="0" max="1" value="0.85" placeholder="例如: 0.85">
+        </div>
+        
+        <div class="form-group">
+            <label for="p1_efficiency">效率 (η)</label>
+            <input type="number" id="p1_efficiency" step="0.01" min="0" max="1" value="1.0" placeholder="例如: 0.85">
+            <small>未指定时默认为1.0</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculatePower1Phase()">计算</button>
+        
+        <div id="p1_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="p1_result_value"></span> <span id="p1_result_unit"></span></div>
+            <div class="result-formula" id="p1_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 14. 家庭用空调器容量选择 -->
+<div id="air_conditioner_home" class="tab-content">
+    <div class="tool-form">
+        <h2>家庭用空调器容量的选择</h2>
+        <p class="formula-info">公式: Q = 面积 × 单位面积制冷量</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>物理来源：</strong>基于单位面积冷负荷指标的经验公式，用于初步估算。依据国家标准 GB 50736-2012《民用建筑供暖通风与空气调节设计规范》。<br>
+            <strong>选择原则：</strong><br>
+            对于墙厚在24cm以上，层高在3.2M以下，室外环境温度不超过43℃时，按每平方米选用120～140W为宜。<br>
+            例如：15m²的房间选用1800～2100W。<br>
+            <strong>注意事项：</strong>房间朝南取小值，朝西或房顶、墙壁较薄以及层高大于3.2M的房间取大值。
+        </p>
+        
+        <div class="form-group">
+            <label for="ach_area">房间面积 (m²) <span class="required">*</span></label>
+            <input type="number" id="ach_area" step="0.01" min="0.01" placeholder="例如: 15">
+        </div>
+        
+        <div class="form-group">
+            <label for="ach_unit_capacity">单位面积制冷量 (W/m²) <span class="required">*</span></label>
+            <input type="number" id="ach_unit_capacity" step="1" min="100" max="200" value="130" placeholder="例如: 130">
+            <small>通常范围: 120-140W/m²（朝南取小值，朝西或层高大于3.2M取大值）</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateAirConditionerHome()">计算</button>
+        
+        <div id="ach_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="ach_result_value"></span> <span id="ach_result_unit"></span></div>
+            <div class="result-formula" id="ach_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 15. 较大场所用空调器容量选择 -->
+<div id="air_conditioner_large" class="tab-content">
+    <div class="tool-form">
+        <h2>较大场所用空调器容量的选择</h2>
+        <p class="formula-info">公式: Q = k ( q V + η X + u Qz )</p>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>物理来源：</strong>考虑围护结构传热(qV)、人体散热(ηX)、设备散热(uQz)的综合冷负荷公式。依据国家标准 GB 50736-2012《民用建筑供暖通风与空气调节设计规范》。<br>
+            <strong>参数说明：</strong><br>
+            Q: 空调器的容量(KJ/h)<br>
+            k: 容量裕量系数（短期K=1，长期K=1.05~1.1）<br>
+            q: 房间所需冷量（105~143）<br>
+            V: 房间的总容积(m³)<br>
+            η: 房间总人数<br>
+            X: 人体排热量（坐时X=432KJ/h，活动时X=1591KJ/h）<br>
+            u: 房内设备同时使用率和利用率之积（u=0~0.6）<br>
+            Qz: 房间设备总发热量(KJ)
+        </p>
+        
+        <div class="form-group">
+            <label for="acl_k">容量裕量系数 (k) <span class="required">*</span></label>
+            <input type="number" id="acl_k" step="0.01" min="1" max="1.2" value="1.05" placeholder="例如: 1.05">
+            <small>短期使用：1.0，长期使用：1.05～1.1</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="acl_q">房间所需冷量 (q) <span class="required">*</span></label>
+            <input type="number" id="acl_q" step="1" min="105" max="143" value="120" placeholder="例如: 120">
+            <small>通常范围: 105~143</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="acl_volume">房间总容积 (V, m³) <span class="required">*</span></label>
+            <input type="number" id="acl_volume" step="0.01" min="0.01" placeholder="例如: 300">
+            <small>房间面积 × 层高 = 容积</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="acl_people_count">房间总人数 (η)</label>
+            <input type="number" id="acl_people_count" step="1" min="0" value="0" placeholder="例如: 10">
+            <small>如果为0，则不考虑人体排热</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="acl_x">人体排热量 (X, KJ/h)</label>
+            <select id="acl_x_type" onchange="toggleAirConditionerLargeX()">
+                <option value="432">坐时 (432 KJ/h)</option>
+                <option value="1591">活动时 (1591 KJ/h)</option>
+            </select>
+            <input type="number" id="acl_x" step="1" min="0" value="432" style="display: none;">
+        </div>
+        
+        <div class="form-group">
+            <label for="acl_u">设备同时使用率和利用率之积 (u)</label>
+            <input type="number" id="acl_u" step="0.01" min="0" max="0.6" value="0" placeholder="例如: 0.3">
+            <small>范围: 0~0.6，如果为0，则不考虑设备发热</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="acl_qz">房间设备总发热量 (Qz, KJ)</label>
+            <input type="number" id="acl_qz" step="0.01" min="0" value="0" placeholder="例如: 5000">
+            <small>如果为0，则不考虑设备发热</small>
+        </div>
+        
+        <button class="btn btn-primary" onclick="calculateAirConditionerLarge()">计算</button>
+        
+        <div id="acl_result" class="result-box" style="display: none;">
+            <h3>计算结果</h3>
+            <div class="result-value"><span id="acl_result_value"></span> <span id="acl_result_unit"></span></div>
+            <div class="result-formula" id="acl_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 16. 制冷量单位换算 -->
+<div id="refrigeration_unit_convert" class="tab-content">
+    <div class="tool-form">
+        <h2>不同制冷量单位的换算</h2>
+        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>物理来源：</strong>基于不同能量单位之间的换算关系：1W = 0.86kcal/h = 3.412BTU/h = 3.6kJ/h。这是标准单位换算。<br>
+            <strong>说明：</strong>不同制冷量单位之间的换算关系如下表所示。
+        </p>
+        
+        <!-- 换算表 -->
+        <div style="margin-bottom: 2rem; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
+                <thead>
+                    <tr style="background: #3498db; color: white;">
+                        <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">W<br>(国标)</th>
+                        <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">Kcal/h<br>(卡/每小时，旧国标)</th>
+                        <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">BTU/h<br>(英国热量单位)</th>
+                        <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">KJ/H<br>(千焦/每小时，外国)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">1</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">0.8598</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">3.412</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">3.6</td>
+                    </tr>
+                    <tr style="background: #f8f9fa;">
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">1.163</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">1</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">3.9683</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">4.1886</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">0.293</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">0.252</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">1</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">1.055</td>
+                    </tr>
+                    <tr style="background: #f8f9fa;">
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">0.278</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">0.239</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">0.948</td>
+                        <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: center;">1</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 换算计算器 -->
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">单位换算计算器</h3>
+        
+        <div class="form-group">
+            <label>从单位</label>
+            <select id="ruc_from_unit">
+                <option value="W">W (瓦特，国标)</option>
+                <option value="Kcal/h">Kcal/h (卡/每小时，旧国标)</option>
+                <option value="BTU/h">BTU/h (英国热量单位)</option>
+                <option value="KJ/H">KJ/H (千焦/每小时，外国)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="ruc_value">数值 <span class="required">*</span></label>
+            <input type="number" id="ruc_value" step="0.01" min="0" placeholder="例如: 1000">
+        </div>
+        
+        <div class="form-group">
+            <label>转换为</label>
+            <select id="ruc_to_unit">
+                <option value="W">W (瓦特，国标)</option>
+                <option value="Kcal/h">Kcal/h (卡/每小时，旧国标)</option>
+                <option value="BTU/h">BTU/h (英国热量单位)</option>
+                <option value="KJ/H">KJ/H (千焦/每小时，外国)</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-primary" onclick="convertRefrigerationUnit()">换算</button>
+        
+        <div id="ruc_result" class="result-box" style="display: none;">
+            <h3>换算结果</h3>
+            <div class="result-value"><span id="ruc_result_value"></span> <span id="ruc_result_unit"></span></div>
+            <div class="result-formula" id="ruc_result_formula"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.required {
+    color: #e74c3c;
+}
+
+.formula-info {
+    background: #ecf0f1;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    font-family: 'Courier New', monospace;
+}
+
+.formula-info sub {
+    font-size: 0.85em;
+    vertical-align: sub;
+}
+
+.tool-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/tools/current_calc.js"></script>
+{% endblock %}
+

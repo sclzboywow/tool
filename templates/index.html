@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 云上客栈{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>云上客栈</h1>
+    <p class="subtitle">专业的电机、电力、电气计算工具集合</p>
+</div>
+
+<div class="tools-grid">
+    {% for tool in tools %}
+    <div class="tool-card">
+        <h3>{{ tool.name }}</h3>
+        <p>{{ tool.description }}</p>
+        <a href="/tools/{{ tool.id }}" class="btn btn-primary">使用工具</a>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="info-section">
+    <h2>关于本站</h2>
+    <p>本站提供专业的电机、电力、电气相关计算工具，所有工具均基于Excel表格转换而来，确保计算结果的准确性和可靠性。</p>
+    <p>目前提供 {{ tools|length }} 个计算工具，更多工具正在开发中...</p>
+</div>
+{% endblock %}
+

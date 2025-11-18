@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}风机选型计算举例 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>风机选型计算举例</h1>
+    <p class="subtitle">锅炉送风机选型计算，包括煤质分析、燃烧空气量、烟气量、送风机风量和阻力、电动机功率计算</p>
+</div>
+
+<!-- 参数说明表格 -->
+<div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
+    <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
+        <!-- 第一列：煤质参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">煤质参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">C<sub>ar</sub></td><td style="padding: 0.3rem 0;">应用基碳 (%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">O<sub>AR</sub></td><td style="padding: 0.3rem 0;">应用基氧 (%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">H<sub>y</sub></td><td style="padding: 0.3rem 0;">应用基氢 (%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">N<sub>ar</sub></td><td style="padding: 0.3rem 0;">应用基氮 (%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">W<sub>ar</sub></td><td style="padding: 0.3rem 0;">全水 (%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">A<sub>ar</sub></td><td style="padding: 0.3rem 0;">应用基灰 (%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">S<sub>ar</sub></td><td style="padding: 0.3rem 0;">全硫 (%)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">Q<sub>net.ar</sub></td><td style="padding: 0.3rem 0;">低位发热量 (kJ/kg)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第二列：燃煤量和锅炉参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">燃煤量和锅炉参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">B</td><td style="padding: 0.3rem 0;">燃煤量 (kg/s)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">D</td><td style="padding: 0.3rem 0;">锅炉蒸发量 (t/h)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">h<sub>main</sub></td><td style="padding: 0.3rem 0;">主蒸汽焓 (kJ/kg)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">h<sub>feed</sub></td><td style="padding: 0.3rem 0;">给水焓 (kJ/kg)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">α</td><td style="padding: 0.3rem 0;">过量空气系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">t<sub>k</sub></td><td style="padding: 0.3rem 0;">空气温度 (°C)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">t<sub>g</sub></td><td style="padding: 0.3rem 0;">烟气温度 (°C)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">b</td><td style="padding: 0.3rem 0;">当地大气压 (kPa)</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <!-- 第三列：风机和电动机参数 -->
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">风机和电动机参数</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">k<sub>1</sub></td><td style="padding: 0.3rem 0;">风量储备系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">K<sub>2</sub></td><td style="padding: 0.3rem 0;">风压储备系数</td></tr>
+                <tr><td style="padding: 0.3rem 0;">∑Δh</td><td style="padding: 0.3rem 0;">总阻力 (Pa)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η<sub>1</sub></td><td style="padding: 0.3rem 0;">风机效率</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η<sub>2</sub></td><td style="padding: 0.3rem 0;">机械效率</td></tr>
+                <tr><td style="padding: 0.3rem 0;">η<sub>3</sub></td><td style="padding: 0.3rem 0;">电动机效率</td></tr>
+                <tr><td style="padding: 0.3rem 0;">K</td><td style="padding: 0.3rem 0;">电动机备用系数</td></tr>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #c8e6c9; text-align: right;">
+        <span style="color: #e74c3c; font-size: 0.9rem; font-weight: 500;">注: *为必填项，燃煤量B可直接提供或通过锅炉参数计算</span>
+    </div>
+</div>
+
+<!-- 计算公式说明 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>计算公式</h2>
+    <p class="formula-info">燃烧空气量: V<sub>o</sub> = 0.0889×(C<sub>ar</sub>+0.375×S<sub>ar</sub>)+0.265×H<sub>y</sub>-0.033×O<sub>AR</sub></p>
+    <p class="formula-info">理论烟气量: V<sub>yo</sub> = V<sub>RO2</sub>+V<sub>N2</sub>+V<sub>H2Oo</sub></p>
+    <p class="formula-info">实际烟气量: V<sub>y</sub> = V<sub>yo</sub>+过量O<sub>2</sub>+过量N<sub>2</sub>+过量H<sub>2</sub>O</p>
+    <p class="formula-info">送风机风量: V<sub>g</sub> = k<sub>1</sub>×B×1000×α×V<sub>o</sub>×(273+t<sub>k</sub>)×101/(273×b)</p>
+    <p class="formula-info">送风机阻力: H<sub>g</sub> = K<sub>2</sub>×∑Δh×((273+t<sub>k</sub>)/(273+t<sub>g</sub>))×(101/b)×(1.293/ρ<sub>ko</sub>)</p>
+    <p class="formula-info">电动机功率: N<sub>g</sub> = K×V<sub>g</sub>×H<sub>g</sub>/(3600×9.81×102×η<sub>1</sub>×η<sub>2</sub>×η<sub>3</sub>)</p>
+    <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 1.5rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+        <strong>物理来源：</strong>基于化学反应平衡、物质守恒定律和理想气体状态方程。燃烧空气量V<sub>o</sub> = 0.0889×(C<sub>ar</sub>+0.375×S<sub>ar</sub>)+0.265×H<sub>y</sub>-0.033×O<sub>AR</sub>，基于碳、氢、硫、氧等元素的完全燃烧化学反应方程式，系数0.0889、0.265、0.033等来自化学计量比，有严格的理论依据。理论烟气量基于完全燃烧理论，V<sub>RO2</sub>、V<sub>N2</sub>、V<sub>H2Oo</sub>的计算基于化学反应方程式和物质守恒定律。实际烟气量考虑了过量空气的影响，基于物质平衡原理。送风机风量V<sub>g</sub>计算基于理想气体状态方程，考虑了温度、压力和密度修正，其中系数101、1.293等为标准大气条件值。送风机阻力计算基于流体力学原理，考虑了温度、压力和密度修正。电动机功率N<sub>g</sub> = K×V<sub>g</sub>×H<sub>g</sub>/(3600×9.81×102×η<sub>1</sub>×η<sub>2</sub>×η<sub>3</sub>)，基于功率定义和单位换算，系数3600、9.81、102为换算系数，K为安全系数（经验值）。注意：公式中的系数（如0.0889、0.265、0.033、101、1.293等）基于理论计算和标准条件，安全系数K和效率η为工程经验值。<br>
+        <strong>适用范围：</strong>适用于燃煤锅炉送风机选型计算，用于确定送风机的风量、阻力和电动机功率等关键参数。适用于标准大气条件下的空气介质，温度范围通常在0°C至200°C之间。适用于锅炉送风系统的设计和选型，需要考虑实际运行条件（气压、温度）对风机性能的影响。公式基于化学反应和流体力学理论，但包含工程安全系数和效率等经验参数，实际应用时建议结合风机厂家提供的性能曲线进行验证。
+    </p>
+</div>
+
+<!-- 输入表单 -->
+<div class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2>输入参数</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+        <!-- 煤质参数 -->
+        <div class="form-group">
+            <label for="Car">应用基碳 C<sub>ar</sub> (%) <span class="required">*</span></label>
+            <input type="number" id="Car" step="0.01" min="0" max="100" value="43.83" placeholder="例如: 43.83">
+        </div>
+        
+        <div class="form-group">
+            <label for="OAR">应用基氧 O<sub>AR</sub> (%) <span class="required">*</span></label>
+            <input type="number" id="OAR" step="0.01" min="0" max="100" value="21.51" placeholder="例如: 21.51">
+        </div>
+        
+        <div class="form-group">
+            <label for="Hy">应用基氢 H<sub>y</sub> (%) <span class="required">*</span></label>
+            <input type="number" id="Hy" step="0.01" min="0" max="100" value="4.39" placeholder="例如: 4.39">
+        </div>
+        
+        <div class="form-group">
+            <label for="Nar">应用基氮 N<sub>ar</sub> (%) <span class="required">*</span></label>
+            <input type="number" id="Nar" step="0.01" min="0" max="100" value="0.72" placeholder="例如: 0.72">
+        </div>
+        
+        <div class="form-group">
+            <label for="War">全水 W<sub>ar</sub> (%) <span class="required">*</span></label>
+            <input type="number" id="War" step="0.01" min="0" max="100" value="5.35" placeholder="例如: 5.35">
+        </div>
+        
+        <div class="form-group">
+            <label for="Aar">应用基灰 A<sub>ar</sub> (%) <span class="required">*</span></label>
+            <input type="number" id="Aar" step="0.01" min="0" max="100" value="24.02" placeholder="例如: 24.02">
+        </div>
+        
+        <div class="form-group">
+            <label for="Sar">全硫 S<sub>ar</sub> (%) <span class="required">*</span></label>
+            <input type="number" id="Sar" step="0.01" min="0" max="100" value="0.18" placeholder="例如: 0.18">
+        </div>
+        
+        <div class="form-group">
+            <label for="Qnet_ar">低位发热量 Q<sub>net.ar</sub> (kJ/kg) <span class="required">*</span></label>
+            <input type="number" id="Qnet_ar" step="0.01" min="0" value="16929" placeholder="例如: 16929">
+        </div>
+        
+        <!-- 燃煤量（可直接提供或通过锅炉参数计算） -->
+        <div class="form-group">
+            <label for="B">燃煤量 B (kg/s)</label>
+            <input type="number" id="B" step="0.0001" min="0" placeholder="留空则通过锅炉参数计算">
+        </div>
+        
+        <!-- 锅炉参数（用于计算燃煤量） -->
+        <div class="form-group">
+            <label for="D">锅炉蒸发量 D (t/h)</label>
+            <input type="number" id="D" step="0.01" min="0" value="90" placeholder="例如: 90">
+        </div>
+        
+        <div class="form-group">
+            <label for="h_main">主蒸汽焓 h<sub>main</sub> (kJ/kg)</label>
+            <input type="number" id="h_main" step="0.01" value="3500" placeholder="例如: 3500">
+        </div>
+        
+        <div class="form-group">
+            <label for="h_feed">给水焓 h<sub>feed</sub> (kJ/kg)</label>
+            <input type="number" id="h_feed" step="0.01" value="947" placeholder="例如: 947">
+        </div>
+        
+        <div class="form-group">
+            <label for="blowdown">排污率</label>
+            <input type="number" id="blowdown" step="0.001" min="0" max="1" value="0.02" placeholder="例如: 0.02">
+        </div>
+        
+        <div class="form-group">
+            <label for="h_blowdown">排污水焓 h<sub>blowdown</sub> (kJ/kg)</label>
+            <input type="number" id="h_blowdown" step="0.01" value="1491" placeholder="例如: 1491">
+        </div>
+        
+        <div class="form-group">
+            <label for="eta_boiler">锅炉效率 η</label>
+            <input type="number" id="eta_boiler" step="0.01" min="0" max="1" value="0.89" placeholder="例如: 0.89">
+        </div>
+        
+        <!-- 其他参数 -->
+        <div class="form-group">
+            <label for="alpha">过量空气系数 α</label>
+            <input type="number" id="alpha" step="0.01" min="1" value="1.2" placeholder="例如: 1.2">
+        </div>
+        
+        <div class="form-group">
+            <label for="tk">空气温度 t<sub>k</sub> (°C)</label>
+            <input type="number" id="tk" step="0.1" value="20" placeholder="例如: 20">
+        </div>
+        
+        <div class="form-group">
+            <label for="tg">烟气温度 t<sub>g</sub> (°C)</label>
+            <input type="number" id="tg" step="0.1" value="20" placeholder="例如: 20">
+        </div>
+        
+        <div class="form-group">
+            <label for="b">当地大气压 b (kPa) <span class="required">*</span></label>
+            <input type="number" id="b" step="0.001" min="0" value="89.515" placeholder="例如: 89.515">
+        </div>
+        
+        <div class="form-group">
+            <label for="k1">送风机风量储备系数 k<sub>1</sub></label>
+            <input type="number" id="k1" step="0.01" min="0" value="1.15" placeholder="例如: 1.15">
+        </div>
+        
+        <div class="form-group">
+            <label for="k2_primary">一次风机风压储备系数 K<sub>2</sub></label>
+            <input type="number" id="k2_primary" step="0.01" min="0" value="1.2" placeholder="例如: 1.2">
+        </div>
+        
+        <div class="form-group">
+            <label for="k2_secondary">二次风机风压储备系数 K<sub>2</sub></label>
+            <input type="number" id="k2_secondary" step="0.01" min="0" value="1.25" placeholder="例如: 1.25">
+        </div>
+        
+        <div class="form-group">
+            <label for="delta_h_primary">一次风机总阻力 ∑Δh (Pa) <span class="required">*</span></label>
+            <input type="number" id="delta_h_primary" step="0.01" min="0" value="16100" placeholder="例如: 16100">
+        </div>
+        
+        <div class="form-group">
+            <label for="delta_h_secondary">二次风机总阻力 ∑Δh (Pa) <span class="required">*</span></label>
+            <input type="number" id="delta_h_secondary" step="0.01" min="0" value="8315" placeholder="例如: 8315">
+        </div>
+        
+        <div class="form-group">
+            <label for="eta1">风机效率 η<sub>1</sub></label>
+            <input type="number" id="eta1" step="0.01" min="0" max="1" value="0.85" placeholder="例如: 0.85">
+        </div>
+        
+        <div class="form-group">
+            <label for="eta2">机械效率 η<sub>2</sub></label>
+            <input type="number" id="eta2" step="0.01" min="0" max="1" value="0.98" placeholder="例如: 0.98">
+        </div>
+        
+        <div class="form-group">
+            <label for="eta3">电动机效率 η<sub>3</sub></label>
+            <input type="number" id="eta3" step="0.01" min="0" max="1" value="0.9" placeholder="例如: 0.9">
+        </div>
+        
+        <div class="form-group">
+            <label for="K_motor">电动机备用系数 K</label>
+            <input type="number" id="K_motor" step="0.01" min="0" value="1.1" placeholder="例如: 1.1">
+        </div>
+        
+        <div class="form-group">
+            <label for="rho_ko">空气密度 ρ<sub>ko</sub> (kg/m³)</label>
+            <input type="number" id="rho_ko" step="0.001" min="0" value="1.293" placeholder="例如: 1.293">
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <button onclick="calculate()" class="btn btn-primary">计算</button>
+        <button onclick="resetForm()" class="btn btn-secondary">重置</button>
+    </div>
+</div>
+
+<!-- 结果显示 -->
+<div id="result-container" class="tool-form" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none;">
+    <h2>计算结果</h2>
+    <div id="result-content"></div>
+</div>
+
+<script src="/static/js/tools/fan_selection_example.js"></script>
+{% endblock %}
+
