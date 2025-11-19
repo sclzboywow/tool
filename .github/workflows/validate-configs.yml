@@ -1,0 +1,26 @@
+name: Validate tool configs
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Validate tool YAML and build docs
+        run: |
+          python scripts/validate_tool_configs.py --generate-index
+      - name: Ensure generated files are committed
+        run: git diff --exit-code
+

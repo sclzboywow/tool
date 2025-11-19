@@ -1,39 +1,147 @@
 {% extends "base.html" %}
+{% import "partials/macros.html" as macros %}
 
 {% block title %}角加速度计算 - 电机电力电气计算工具站{% endblock %}
+
+{% set schema = {
+    "apiPath": "/api/tools/angular-acceleration/calculate",
+    "tabs": [
+        {
+            "id": "acceleration_time",
+            "tab_label": "加速时间计算",
+            "scenario": "acceleration_time",
+            "section": {
+                "id": "acceleration_time",
+                "title": "加速时间计算",
+                "descriptions": [
+                    "加速时间: t<sub>0</sub> = t × A"
+                ],
+                "fields": [
+                    {
+                        "id": "at_t",
+                        "name": "t",
+                        "label": "每次定位时间 t",
+                        "unit": "s",
+                        "step": 0.1,
+                        "min": 0.1,
+                        "default": 1.5,
+                        "placeholder": "例如: 1.5",
+                        "required": true
+                    },
+                    {
+                        "id": "at_A",
+                        "name": "A",
+                        "label": "加减速时间比 A",
+                        "step": 0.01,
+                        "min": 0.01,
+                        "max": 0.99,
+                        "default": 0.5,
+                        "placeholder": "例如: 0.5",
+                        "required": true,
+                        "help": "通常在0.25~0.5之间"
+                    }
+                ],
+                "result": {
+                    "id": "at_result",
+                    "formula_id": "at_result_formula",
+                    "items": [
+                        {"id": "at_t0_value", "label": "加速时间 t<sub>0</sub>", "unit": "s", "source": "result", "decimals": 4}
+                    ]
+                }
+            }
+        },
+        {
+            "id": "motor_speed",
+            "tab_label": "电机转速计算",
+            "scenario": "motor_speed",
+            "section": {
+                "id": "motor_speed",
+                "title": "电机转速计算",
+                "descriptions": [
+                    "减速机输出轴角加速度: β = (L×π)/(180×(t<sub>0</sub>×(t-t<sub>0</sub>)))",
+                    "减速机输出轴转速: N<sub>max</sub> = (β×t<sub>0</sub>/(2×π))×60",
+                    "电机输出轴角加速度: β<sub>M</sub> = i × β",
+                    "电机输出轴转速: N<sub>M</sub> = N<sub>max</sub> × i"
+                ],
+                "fields": [
+                    {"id": "ms_i", "name": "i", "label": "减速比 i", "step": 0.1, "min": 0.1, "default": 5, "placeholder": "例如: 5", "required": true},
+                    {"id": "ms_t", "name": "t", "label": "每次定位时间 t", "unit": "s", "step": 0.1, "min": 0.1, "default": 1.5, "placeholder": "例如: 1.5", "required": true},
+                    {"id": "ms_L", "name": "L", "label": "每次运动角度 L", "unit": "°", "step": 0.1, "min": 0.1, "default": 15, "placeholder": "例如: 15", "required": true},
+                    {"id": "ms_A", "name": "A", "label": "加减速时间比 A", "step": 0.01, "min": 0.01, "max": 0.99, "default": 0.5, "placeholder": "例如: 0.5", "required": true, "help": "通常在0.25~0.5之间"}
+                ],
+                "result": {
+                    "id": "ms_result",
+                    "formula_id": "ms_result_formula",
+                    "items": [
+                        {"id": "ms_t0_value", "label": "加速时间 t<sub>0</sub>", "unit": "s", "source": "extra.t0", "decimals": 4},
+                        {"id": "ms_beta_value", "label": "减速机输出轴角加速度 β", "unit": "rad/s²", "source": "extra.beta", "decimals": 6},
+                        {"id": "ms_Nmax_value", "label": "减速机输出轴转速 N<sub>max</sub>", "unit": "rpm", "source": "extra.Nmax", "decimals": 4},
+                        {"id": "ms_betaM_value", "label": "电机输出轴角加速度 β<sub>M</sub>", "unit": "rad/s²", "source": "extra.betaM", "decimals": 6},
+                        {"id": "ms_NM_value", "label": "电机输出轴转速 N<sub>M</sub>", "unit": "rpm", "source": "result", "decimals": 4}
+                    ]
+                }
+            }
+        },
+        {
+            "id": "torque",
+            "tab_label": "扭矩计算",
+            "scenario": "torque",
+            "section": {
+                "id": "torque",
+                "title": "扭矩计算",
+                "descriptions": [
+                    "电机输出扭矩: T = J × β<sub>M</sub>",
+                    "启动扭矩: T<sub>s</sub> = 2 × T"
+                ],
+                "fields": [
+                    {"id": "tq_J", "name": "J", "label": "负载惯量 J", "unit": "Kg.m²", "step": 0.001, "min": 0.001, "default": 0.285, "placeholder": "例如: 0.285", "required": true},
+                    {"id": "tq_betaM", "name": "betaM", "label": "电机输出轴角加速度 β<sub>M</sub>", "unit": "rad/s²", "step": 0.000001, "min": 0.000001, "default": 2.327106, "placeholder": "例如: 2.327106", "required": true, "help": "可从\"电机转速计算\"标签页获得"}
+                ],
+                "result": {
+                    "id": "tq_result",
+                    "formula_id": "tq_result_formula",
+                    "items": [
+                        {"id": "tq_T_value", "label": "电机输出扭矩 T", "unit": "Nm", "source": "extra.T", "decimals": 6},
+                        {"id": "tq_result_value", "label": "启动扭矩 T<sub>s</sub>", "unit": "Nm", "source": "result", "decimals": 6}
+                    ]
+                }
+            }
+        }
+    ]
+} %}
 
 {% block content %}
 <div class="page-header">
     <h1>角加速度计算</h1>
-    <p class="subtitle">根据运动要求计算最大转速和角加速度，包括加速时间、减速机输出轴角加速度、电机输出轴角加速度、转速和扭矩计算</p>
+    <p class="subtitle">根据运动要求计算最大转速、角加速度与扭矩，统一使用API计算，前端配置化渲染表单与结果。</p>
 </div>
 
-<!-- 参数说明表格 -->
 <div class="reference-table" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #c8e6c9;">
     <div style="display: grid; grid-template-columns: 1fr 4px 1fr 4px 1fr; gap: 1rem; align-items: start;">
-        <!-- 第一列 -->
         <div>
-            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">核心符号</h3>
             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                 <tr><td style="padding: 0.3rem 0;">i</td><td style="padding: 0.3rem 0;">减速比</td></tr>
                 <tr><td style="padding: 0.3rem 0;">t</td><td style="padding: 0.3rem 0;">每次定位时间(s)</td></tr>
-            </table>
-        </div>
-        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
-        <!-- 第二列 -->
-        <div>
-            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                 <tr><td style="padding: 0.3rem 0;">L</td><td style="padding: 0.3rem 0;">每次运动角度(°)</td></tr>
-                <tr><td style="padding: 0.3rem 0;">A</td><td style="padding: 0.3rem 0;">加减速时间比</td></tr>
             </table>
         </div>
         <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
-        <!-- 第三列 -->
         <div>
-            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">参数说明</h3>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">结果含义</h3>
             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                <tr><td style="padding: 0.3rem 0;">J</td><td style="padding: 0.3rem 0;">负载惯量(Kg.m²)</td></tr>
+                <tr><td style="padding: 0.3rem 0;">t<sub>0</sub></td><td style="padding: 0.3rem 0;">加速时间</td></tr>
+                <tr><td style="padding: 0.3rem 0;">β/β<sub>M</sub></td><td style="padding: 0.3rem 0;">输出轴角加速度/电机轴角加速度</td></tr>
+                <tr><td style="padding: 0.3rem 0;">N<sub>max</sub>/N<sub>M</sub></td><td style="padding: 0.3rem 0;">输出轴/电机轴最大转速</td></tr>
+                <tr><td style="padding: 0.3rem 0;">T/T<sub>s</sub></td><td style="padding: 0.3rem 0;">电机输出扭矩/启动扭矩</td></tr>
+            </table>
+        </div>
+        <div style="background: #4caf50; width: 2px; height: 100%; border-radius: 1px;"></div>
+        <div>
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">使用提示</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <tr><td style="padding: 0.3rem 0;">A</td><td style="padding: 0.3rem 0;">加减速时间比，常用0.25~0.5</td></tr>
+                <tr><td style="padding: 0.3rem 0;">J</td><td style="padding: 0.3rem 0;">负载惯量，单位Kg·m²</td></tr>
             </table>
         </div>
     </div>
@@ -42,127 +150,23 @@
     </div>
 </div>
 
-<!-- 标签页 -->
 <div class="sub-tabs-container">
     <div id="sub-tabs-angular" class="sub-tabs active">
-        <button class="sub-tab active" onclick="switchSubTab('acceleration_time')">1. 加速时间计算</button>
-        <button class="sub-tab" onclick="switchSubTab('motor_speed')">2. 电机转速计算</button>
-        <button class="sub-tab" onclick="switchSubTab('torque')">3. 扭矩计算</button>
+        {% for tab in schema.tabs %}
+            <button class="sub-tab{% if loop.first %} active{% endif %}" data-target="{{ tab.id }}">{{ loop.index }}. {{ tab.tab_label }}</button>
+        {% endfor %}
     </div>
 </div>
 
-<!-- 1. 加速时间计算 -->
-<div id="acceleration_time" class="tab-content active">
-    <div class="tool-form">
-        <h2>加速时间计算</h2>
-        <p class="formula-info">加速时间: t<sub>0</sub> = t × A</p>
-        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-            <strong>物理来源：</strong>基于运动控制理论。加速时间t<sub>0</sub> = t × A，其中t为每次定位时间，A为加减速时间比，用于确定加速阶段的时间。加减速时间通常以定位时间的25%~50%计算（A=0.25~0.5），用于确定运动系统的加减速阶段时间，为后续的角加速度和转速计算提供基础。这是标准运动控制方法。<br>
-            <strong>适用范围：</strong>适用于间歇运动系统的加速时间计算，用于确定加速阶段的时间参数。
-        </p>
-        
-        <div class="form-group">
-            <label for="at_t">每次定位时间 t (s) <span class="required">*</span></label>
-            <input type="number" id="at_t" step="0.1" min="0.1" value="1.5" placeholder="例如: 1.5">
-        </div>
-        
-        <div class="form-group">
-            <label for="at_A">加减速时间比 A <span class="required">*</span></label>
-            <input type="number" id="at_A" step="0.01" min="0.01" max="0.99" value="0.5" placeholder="例如: 0.5">
-            <small>通常在0.25~0.5之间</small>
-        </div>
-        
-        <button class="btn btn-primary" onclick="calculateAccelerationTime()">计算</button>
-        
-        <div id="at_result" class="result-box" style="display: none;">
-            <h3>计算结果</h3>
-            <div class="result-value">加速时间 t<sub>0</sub>: <span id="at_t0_value"></span> s</div>
-            <div class="result-formula" id="at_result_formula"></div>
-        </div>
-    </div>
+{% for tab in schema.tabs %}
+<div id="{{ tab.id }}" class="tab-content{% if loop.first %} active{% endif %}" data-scenario="{{ tab.scenario }}">
+    {{ macros.form_section(tab.section) }}
 </div>
+{% endfor %}
 
-<!-- 2. 电机转速计算 -->
-<div id="motor_speed" class="tab-content">
-    <div class="tool-form">
-        <h2>电机转速计算</h2>
-        <p class="formula-info">减速机输出轴角加速度: β = (L×π)/(180×(t<sub>0</sub>×(t-t<sub>0</sub>)))</p>
-        <p class="formula-info">减速机输出轴转速: N<sub>max</sub> = (β×t<sub>0</sub>/(2×π))×60</p>
-        <p class="formula-info">电机输出轴角加速度: β<sub>M</sub> = i × β</p>
-        <p class="formula-info">电机输出轴转速: N<sub>M</sub> = N<sub>max</sub> × i</p>
-        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-            <strong>物理来源：</strong>基于运动学理论和角加速度关系。减速机输出轴角加速度β = (L×π)/(180×(t<sub>0</sub>×(t-t<sub>0</sub>)))，基于匀加速运动学公式，其中L为每次运动角度（转换为弧度），t<sub>0</sub>为加速时间，t-t<sub>0</sub>为匀速时间。减速机输出轴转速N<sub>max</sub> = (β×t<sub>0</sub>/(2×π))×60，基于角速度与角加速度的关系，乘以60转换为rpm。电机输出轴角加速度β<sub>M</sub> = i × β，通过减速比i放大。电机输出轴转速N<sub>M</sub> = N<sub>max</sub> × i，通过减速比i放大。这是标准运动学和减速机理论。<br>
-            <strong>适用范围：</strong>适用于根据运动要求计算最大转速和角加速度的场景，用于确定电机选型所需的转速参数。适用于间歇运动系统，考虑加速、匀速和减速阶段的运动学关系。
-        </p>
-        
-        <div class="form-group">
-            <label for="ms_i">减速比 i <span class="required">*</span></label>
-            <input type="number" id="ms_i" step="0.1" min="0.1" value="5" placeholder="例如: 5">
-        </div>
-        
-        <div class="form-group">
-            <label for="ms_t">每次定位时间 t (s) <span class="required">*</span></label>
-            <input type="number" id="ms_t" step="0.1" min="0.1" value="1.5" placeholder="例如: 1.5">
-        </div>
-        
-        <div class="form-group">
-            <label for="ms_L">每次运动角度 L (°) <span class="required">*</span></label>
-            <input type="number" id="ms_L" step="0.1" min="0.1" value="15" placeholder="例如: 15">
-        </div>
-        
-        <div class="form-group">
-            <label for="ms_A">加减速时间比 A <span class="required">*</span></label>
-            <input type="number" id="ms_A" step="0.01" min="0.01" max="0.99" value="0.5" placeholder="例如: 0.5">
-            <small>通常在0.25~0.5之间</small>
-        </div>
-        
-        <button class="btn btn-primary" onclick="calculateMotorSpeed()">计算</button>
-        
-        <div id="ms_result" class="result-box" style="display: none;">
-            <h3>计算结果</h3>
-            <div class="result-value">加速时间 t<sub>0</sub>: <span id="ms_t0_value"></span> s</div>
-            <div class="result-value">减速机输出轴角加速度 β: <span id="ms_beta_value"></span> rad/s²</div>
-            <div class="result-value">减速机输出轴转速 N<sub>max</sub>: <span id="ms_Nmax_value"></span> rpm</div>
-            <div class="result-value">电机输出轴角加速度 β<sub>M</sub>: <span id="ms_betaM_value"></span> rad/s²</div>
-            <div class="result-value">电机输出轴转速 N<sub>M</sub>: <span id="ms_NM_value"></span> rpm</div>
-            <div class="result-formula" id="ms_result_formula"></div>
-        </div>
-    </div>
-</div>
-
-<!-- 3. 扭矩计算 -->
-<div id="torque" class="tab-content">
-    <div class="tool-form">
-        <h2>扭矩计算</h2>
-        <p class="formula-info">电机输出扭矩: T = J × β<sub>M</sub></p>
-        <p class="formula-info">启动扭矩: T<sub>s</sub> = 2 × T</p>
-        <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-            <strong>物理来源：</strong>基于转动惯量理论和角加速度关系。电机输出扭矩T = J × β<sub>M</sub>，基于转动惯量和角加速度的关系T = J×α，其中J为负载惯量，β<sub>M</sub>为电机输出轴角加速度。启动扭矩T<sub>s</sub> = 2 × T，考虑启动时的安全系数，确保有足够的余量应对实际工况。这是标准转动惯量和角加速度理论。<br>
-            <strong>适用范围：</strong>适用于根据负载惯量和角加速度计算电机所需扭矩的场景，用于确定电机选型所需的扭矩参数。适用于间歇运动系统，考虑启动时的安全系数。
-        </p>
-        
-        <div class="form-group">
-            <label for="tq_J">负载惯量 J (Kg.m²) <span class="required">*</span></label>
-            <input type="number" id="tq_J" step="0.001" min="0.001" value="0.285" placeholder="例如: 0.285">
-        </div>
-        
-        <div class="form-group">
-            <label for="tq_betaM">电机输出轴角加速度 β<sub>M</sub> (rad/s²) <span class="required">*</span></label>
-            <input type="number" id="tq_betaM" step="0.000001" min="0.000001" value="2.327106" placeholder="例如: 2.327106">
-            <small>可从"电机转速计算"标签页获得</small>
-        </div>
-        
-        <button class="btn btn-primary" onclick="calculateTorque()">计算</button>
-        
-        <div id="tq_result" class="result-box" style="display: none;">
-            <h3>计算结果</h3>
-            <div class="result-value">电机输出扭矩 T: <span id="tq_T_value"></span> Nm</div>
-            <div class="result-value">启动扭矩 T<sub>s</sub>: <span id="tq_result_value"></span> <span id="tq_result_unit"></span></div>
-            <div class="result-formula" id="tq_result_formula"></div>
-        </div>
-    </div>
-</div>
-
-<script src="/static/js/tools/angular_acceleration.js"></script>
+<script>
+    const angularAccelerationSchema = {{ schema | tojson }};
+</script>
+<script src="{{ static_asset('js/tools/angular_acceleration.js') }}"></script>
 {% endblock %}
 

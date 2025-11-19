@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Ruff
+        run: ruff check .
+
+      - name: Mypy
+        run: mypy scripts/create_tool.py
+
+      - name: Pytest
+        run: pytest
+
+      - name: Generator smoke test
+        run: |
+          python scripts/create_tool.py \
+            --slug ci-check \
+            --name "CI Check" \
+            --description "Ensure the generator stays in sync" \
+            --output-dir /tmp/tool-scaffolds \
+            --force

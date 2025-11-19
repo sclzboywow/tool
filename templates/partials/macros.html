@@ -1,0 +1,66 @@
+{% macro form_field(field) %}
+<div class="form-group{% if field.wrap_class %} {{ field.wrap_class }}{% endif %}">
+    <label for="{{ field.id }}">
+        {{ field.label | safe }}
+        {% if field.required %}<span class="required">*</span>{% endif %}
+    </label>
+    <div class="input-with-unit">
+        {% if field.type == 'select' %}
+            <select id="{{ field.id }}"{% if field.name %} name="{{ field.name }}"{% endif %}
+                    {% if field.min is defined %} min="{{ field.min }}"{% endif %}
+                    {% if field.max is defined %} max="{{ field.max }}"{% endif %}>
+                {% for option in field.options %}
+                    <option value="{{ option.value }}"{% if option.value == field.default %} selected{% endif %}>{{ option.label }}</option>
+                {% endfor %}
+            </select>
+        {% else %}
+            <input type="{{ field.type or 'number' }}" id="{{ field.id }}"{% if field.name %} name="{{ field.name }}"{% endif %}
+                   {% if field.step %} step="{{ field.step }}"{% endif %}
+                   {% if field.min is defined %} min="{{ field.min }}"{% endif %}
+                   {% if field.max is defined %} max="{{ field.max }}"{% endif %}
+                   {% if field.placeholder %} placeholder="{{ field.placeholder }}"{% endif %}
+                   {% if field.default is defined %} value="{{ field.default }}"{% endif %}>
+        {% endif %}
+        {% if field.unit %}<span class="input-unit">{{ field.unit }}</span>{% endif %}
+    </div>
+    {% if field.help %}<small>{{ field.help | safe }}</small>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro unit_tag(label, unit) %}
+<span class="unit-tag">{{ label }} {% if unit %}<span class="unit">{{ unit }}</span>{% endif %}</span>
+{% endmacro %}
+
+{% macro result_card(result) %}
+<div id="{{ result.id }}" class="result-box" style="display: none;">
+    <h3>{{ result.title or '计算结果' }}</h3>
+    {% for item in result.items %}
+    <div class="result-value">{{ item.label | safe }}: <span id="{{ item.id }}"></span>{% if item.unit %} {{ item.unit }}{% endif %}</div>
+    {% endfor %}
+    {% if result.formula_id %}<div class="result-formula" id="{{ result.formula_id }}"></div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro form_section(section) %}
+<div class="tool-form">
+    <h2>{{ section.title }}</h2>
+    {% if section.descriptions %}
+        {% for line in section.descriptions %}
+            <p class="formula-info">{{ line | safe }}</p>
+        {% endfor %}
+    {% endif %}
+    {% if section.note %}
+        <p class="section-note">{{ section.note | safe }}</p>
+    {% endif %}
+    {% if section.fields %}
+        <div class="form-grid" style="display: grid; gap: 1rem;{% if section.columns %} grid-template-columns: repeat({{ section.columns }}, 1fr);{% else %} grid-template-columns: repeat(2, 1fr);{% endif %}">
+            {% for field in section.fields %}
+                {{ form_field(field) }}
+            {% endfor %}
+        </div>
+    {% endif %}
+    <button class="btn btn-primary" type="button" data-submit="{{ section.id }}">{{ section.submit_label or '计算' }}</button>
+    {{ result_card(section.result) }}
+</div>
+{% endmacro %}
+

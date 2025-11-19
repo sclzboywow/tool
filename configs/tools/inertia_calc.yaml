@@ -1,0 +1,106 @@
+schema_version: "1.0"
+id: inertia_calc
+title: 惯量计算
+summary: 针对常见几何形状的转动惯量与质量评估。
+category: 机械
+parameters:
+  - name: d0
+    label: 外径 d0
+    description: 圆柱/盘体外径
+    type: number
+    unit: mm
+    required: true
+    minimum: 0
+  - name: d1
+    label: 内径 d1
+    description: 空心件内径（实心时为0）
+    type: number
+    unit: mm
+    required: false
+    minimum: 0
+  - name: L
+    label: 长度 L
+    description: 圆柱或杆件长度
+    type: number
+    unit: mm
+    required: false
+    minimum: 0
+  - name: rho
+    label: 材料密度 ρ
+    description: 质量密度
+    type: number
+    unit: kg/m³
+    required: true
+    minimum: 0
+  - name: e
+    label: 偏心距 e
+    description: 重心线与旋转轴线的距离
+    type: number
+    unit: mm
+    required: false
+    minimum: 0
+  - name: mass
+    label: 质量 m
+    description: 已知质量时的直接惯量估算
+    type: number
+    unit: kg
+    required: false
+    minimum: 0
+  - name: radius
+    label: 半径 r
+    description: 直线运动或盘体半径
+    type: number
+    unit: mm
+    required: false
+    minimum: 0
+scenarios:
+  - id: cylinder_parallel
+    title: 圆柱体惯量（平行轴）
+    summary: 长度方向中心线与旋转轴平行时的惯量。
+    formula: J = (π/32) × ρ × L × (d0⁴ - d1⁴) + m × e²
+    parameters: [d0, d1, L, rho, e]
+    outputs: [J(kg·cm²), m(kg)]
+  - id: cylinder_perpendicular
+    title: 圆柱体惯量（垂直轴）
+    summary: 长度方向与旋转轴垂直的情况。
+    formula: J = (1/4) × m × ((d0²+d1²)/4 + L²/3) + m × e²
+    parameters: [d0, d1, L, rho, e]
+    outputs: [J(kg·cm²), m(kg)]
+  - id: disk
+    title: 饼状物体惯量
+    summary: 薄盘绕中心轴的惯量。
+    formula: J = (1/2) × m × r²
+    parameters: [d0, d1, rho]
+    outputs: [J(kg·cm²), m(kg)]
+  - id: linear_motion
+    title: 直线往复质量折算
+    summary: 将直线质量折算到旋转轴的等效惯量。
+    formula: J = m × (r/1000)²
+    parameters: [mass, radius]
+    outputs: [J(kg·cm²)]
+examples:
+  - title: Φ80×100mm 实心钢辊
+    scenario: cylinder_parallel
+    inputs:
+      d0: 80
+      d1: 0
+      L: 100
+      rho: 7850
+      e: 0
+    expected:
+      J: "≈15.9"
+    notes: 假定轴线重合，偏心为0。
+  - title: 5kg 线性滑块折算
+    scenario: linear_motion
+    inputs:
+      mass: 5
+      radius: 150
+    expected:
+      J: "≈1.125"
+    notes: 以 150mm 半径折算到回转惯量。
+physics:
+  principle: 基于转动惯量积分公式与平行轴定理，对常见形状给出简化公式。
+  assumptions: 几何均匀分布、刚体假设；长度与直径需使用统一的单位换算。
+  references:
+    - 机械设计手册-转动惯量章节
+

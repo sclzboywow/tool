@@ -1,0 +1,86 @@
+schema_version: "1.0"
+id: current_calc
+title: 常用电流计算
+summary: 提供典型工况下的电流估算公式（纯电阻、感性与电机负荷）。
+category: 电气
+parameters:
+  - name: power
+    label: 有功功率
+    description: 负载输入功率
+    type: number
+    unit: W
+    required: true
+    minimum: 0
+  - name: voltage
+    label: 额定电压
+    description: 线电压或相电压
+    type: number
+    unit: V
+    required: true
+    minimum: 0
+  - name: cos_phi
+    label: 功率因数 cosφ
+    description: 感性或电机负载的功率因数
+    type: number
+    unit: 无
+    required: false
+    minimum: 0
+    maximum: 1
+  - name: efficiency
+    label: 效率 η
+    description: 电机效率（0~1）
+    type: number
+    unit: 无
+    required: false
+    minimum: 0
+    maximum: 1
+scenarios:
+  - id: pure_resistor
+    title: 纯电阻负荷
+    summary: 基于欧姆定律的额定电流估算。
+    formula: I = P / U
+    parameters: [power, voltage]
+    outputs: [current(A)]
+  - id: inductive
+    title: 感性负荷
+    summary: 考虑功率因数后的电流计算。
+    formula: I = P / (U × cosφ)
+    parameters: [power, voltage, cos_phi]
+    outputs: [current(A)]
+  - id: single_phase_motor
+    title: 单相电动机负荷
+    summary: 结合效率与功率因数的单相电机电流。
+    formula: I = P / (U × η × cosφ)
+    parameters: [power, voltage, efficiency, cos_phi]
+    outputs: [current(A)]
+  - id: three_phase_motor
+    title: 三相电动机负荷
+    summary: 三相线路下的电机线电流计算。
+    formula: I = P / (√3 × U × η × cosφ)
+    parameters: [power, voltage, efficiency, cos_phi]
+    outputs: [line_current(A)]
+examples:
+  - title: 电磁炉电流估算
+    scenario: pure_resistor
+    inputs:
+      power: 2200
+      voltage: 220
+    expected:
+      current: 10
+    notes: 欧姆定律直接计算。
+  - title: 5kW 三相电机
+    scenario: three_phase_motor
+    inputs:
+      power: 5000
+      voltage: 380
+      efficiency: 0.9
+      cos_phi: 0.85
+    expected:
+      line_current: 8.9
+    notes: 以常见效率和功率因数估算。
+physics:
+  principle: 基于功率、电压、电流及功率因数之间的关系，结合三相线路的√3折算。
+  assumptions: 额定稳态运行，忽略起动电流与谐波。
+  references:
+    - 电工学基础公式汇编
+

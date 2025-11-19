@@ -57,6 +57,14 @@ workspace/
 
 ## 开发流程
 
+### 配置化工具元数据
+
+- 在 `configs/tools/<tool>.yaml` 维护工具标识、标题、场景、输入参数、示例用例及物理公式说明，详见 `scripts/tool_config_models.py` 中的 JSONSchema。
+- 使用 `python scripts/validate_tool_configs.py --generate-index` 进行校验并生成索引文档：
+  - 校验所有 YAML 是否符合 Pydantic/JSONSchema 约束，并在 `configs/tool_config.schema.json` 生成最新 schema。
+  - 将配置汇总为 `docs/tool_index.md`（Markdown）与 `docs/tool_index.html`（预览版）方便评审。
+- CI 会自动执行上述脚本并确保生成文件已提交。
+
 ### 第一步：分析Excel文件
 
 使用分析脚本了解Excel结构：
@@ -282,7 +290,7 @@ async def your_tool_page(request: Request):
     </div>
 </div>
 
-<script src="/static/js/tools/your_tool.js"></script>
+<script src="{{ static_asset('js/tools/your_tool.js') }}"></script>
 {% endblock %}
 ```
 
@@ -607,6 +615,12 @@ python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 - **生产环境**: https://tool.w8.hk/
 - **API文档**: https://tool.w8.hk/docs
 
+### 4. 构建静态资源指纹
+
+- 运行 `python scripts/fingerprint_static.py`，为 `static/js/tools/*.js` 生成指纹文件和 `static/manifest.json`
+- 模板通过 `static_asset()` 读取 manifest，未生成时会自动回退到原始文件名
+- 部署时同步 `static/manifest.json` 及指纹化后的脚本文件，便于前端缓存失效控制
+
 ## 部署配置
 
 ### Systemd服务
@@ -742,6 +756,19 @@ python3 scripts/analyze_excel.py data/文件名.xlsx "工作表名"
 - [ ] 重启服务并验证
 
 ## 常见问题
+
+## 打包分发
+
+如果需要将当前项目打包成可交付的压缩包，可运行内置脚本生成包含源码、静态资源、模板及工具配置的 Zip 文件：
+
+```bash
+python3 scripts/package_app.py  # 默认输出到 dist/tool-app.zip
+
+# 自定义输出路径
+python3 scripts/package_app.py --output /tmp/tool-app.zip
+```
+
+打包时会排除 `__pycache__` 和 `.pyc` 文件，便于直接分发部署。
 
 ### 1. 公式显示不正确
 

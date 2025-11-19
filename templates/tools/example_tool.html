@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}示例参数计算 - 电机电力电气计算工具站{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>示例参数计算</h1>
+    <p class="subtitle">演示如何通过工具配置生成数据模型、表单和前端交互骨架。</p>
+</div>
+
+<div class="form-card">
+    <form id="example_tool-form">
+<div class="form-group">
+    <label for="example_tool-value_a">参数A</label>
+    <input type="number" id="example_tool-value_a" name="value_a" min="0" placeholder="请输入参数A" required>
+</div>
+<div class="form-group">
+    <label for="example_tool-value_b">参数B</label>
+    <input type="number" id="example_tool-value_b" name="value_b"  placeholder="请输入参数B" >
+</div>
+<div class="form-group">
+                    <label for="example_tool-mode">计算模式</label>
+                    <select id="example_tool-mode" name="mode" required="true">
+<option value="fast">fast</option>
+<option value="precise">precise</option>
+</select>
+                </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">开始计算</button>
+            <button type="reset" class="btn-secondary">重置</button>
+        </div>
+    </form>
+</div>
+
+<div id="example_tool-result" class="result-card" style="display:none;">
+    <h3>计算结果</h3>
+    <div class="result-content"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ static_asset('js/common.js') }}"></script>
+<script src="{{ static_asset('js/tools/example_tool.js') }}"></script>
+{% endblock %}

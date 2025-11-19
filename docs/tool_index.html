@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>工具索引</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 960px; margin: auto; padding: 2rem; background: #f7f7f7; }
+    pre, code { background: #f0f0f0; padding: 0.15rem 0.35rem; border-radius: 3px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    h1, h2, h3 { color: #333; }
+  </style>
+</head>
+<body>
+  <article>
+  # 工具索引<br/><br/>共收录 2 个工具配置。生成时间：自动生成。<br/>## 常用电流计算 (current_calc)<br/><br/>提供典型工况下的电流估算公式（纯电阻、感性与电机负荷）。<br/><br/>领域：`电气`<br/><br/>### 参数列表<br/>| 参数名 | 显示名 | 类型 | 单位 | 必填 | 约束 | 说明 |<br/>| --- | --- | --- | --- | --- | --- | --- |<br/>| `power` | 有功功率 | number | W | 是 | -  | 负载输入功率 |<br/>| `voltage` | 额定电压 | number | V | 是 | -  | 线电压或相电压 |<br/>| `cos_phi` | 功率因数 cosφ | number | 无 | 否 | 范围: - ~ 1.0 | 感性或电机负载的功率因数 |<br/>| `efficiency` | 效率 η | number | 无 | 否 | 范围: - ~ 1.0 | 电机效率（0~1） |<br/><br/>### 计算场景<br/>- **纯电阻负荷** (`pure_resistor`)<br/>  - 描述：基于欧姆定律的额定电流估算。<br/>  - 公式：I = P / U<br/>  - 输入参数：power, voltage<br/>  - 输出：current(A)<br/><br/>- **感性负荷** (`inductive`)<br/>  - 描述：考虑功率因数后的电流计算。<br/>  - 公式：I = P / (U × cosφ)<br/>  - 输入参数：power, voltage, cos_phi<br/>  - 输出：current(A)<br/><br/>- **单相电动机负荷** (`single_phase_motor`)<br/>  - 描述：结合效率与功率因数的单相电机电流。<br/>  - 公式：I = P / (U × η × cosφ)<br/>  - 输入参数：power, voltage, efficiency, cos_phi<br/>  - 输出：current(A)<br/><br/>- **三相电动机负荷** (`three_phase_motor`)<br/>  - 描述：三相线路下的电机线电流计算。<br/>  - 公式：I = P / (√3 × U × η × cosφ)<br/>  - 输入参数：power, voltage, efficiency, cos_phi<br/>  - 输出：line_current(A)<br/><br/><br/>### 示例用例<br/>- **电磁炉电流估算** (场景：`pure_resistor`)<br/>  - 输入：{"power": 2200, "voltage": 220}<br/>  - 预期：{"current": 10}<br/>  - 备注：欧姆定律直接计算。<br/>- **5kW 三相电机** (场景：`three_phase_motor`)<br/>  - 输入：{"cos_phi": 0.85, "efficiency": 0.9, "power": 5000, "voltage": 380}<br/>  - 预期：{"line_current": 8.9}<br/>  - 备注：以常见效率和功率因数估算。<br/><br/>### 物理公式说明<br/>- 原理：基于功率、电压、电流及功率因数之间的关系，结合三相线路的√3折算。<br/>- 假设/适用范围：额定稳态运行，忽略起动电流与谐波。<br/>- 参考：电工学基础公式汇编<br/>## 惯量计算 (inertia_calc)<br/><br/>针对常见几何形状的转动惯量与质量评估。<br/><br/>领域：`机械`<br/><br/>### 参数列表<br/>| 参数名 | 显示名 | 类型 | 单位 | 必填 | 约束 | 说明 |<br/>| --- | --- | --- | --- | --- | --- | --- |<br/>| `d0` | 外径 d0 | number | mm | 是 | -  | 圆柱/盘体外径 |<br/>| `d1` | 内径 d1 | number | mm | 否 | -  | 空心件内径（实心时为0） |<br/>| `L` | 长度 L | number | mm | 否 | -  | 圆柱或杆件长度 |<br/>| `rho` | 材料密度 ρ | number | kg/m³ | 是 | -  | 质量密度 |<br/>| `e` | 偏心距 e | number | mm | 否 | -  | 重心线与旋转轴线的距离 |<br/>| `mass` | 质量 m | number | kg | 否 | -  | 已知质量时的直接惯量估算 |<br/>| `radius` | 半径 r | number | mm | 否 | -  | 直线运动或盘体半径 |<br/><br/>### 计算场景<br/>- **圆柱体惯量（平行轴）** (`cylinder_parallel`)<br/>  - 描述：长度方向中心线与旋转轴平行时的惯量。<br/>  - 公式：J = (π/32) × ρ × L × (d0⁴ - d1⁴) + m × e²<br/>  - 输入参数：d0, d1, L, rho, e<br/>  - 输出：J(kg·cm²), m(kg)<br/><br/>- **圆柱体惯量（垂直轴）** (`cylinder_perpendicular`)<br/>  - 描述：长度方向与旋转轴垂直的情况。<br/>  - 公式：J = (1/4) × m × ((d0²+d1²)/4 + L²/3) + m × e²<br/>  - 输入参数：d0, d1, L, rho, e<br/>  - 输出：J(kg·cm²), m(kg)<br/><br/>- **饼状物体惯量** (`disk`)<br/>  - 描述：薄盘绕中心轴的惯量。<br/>  - 公式：J = (1/2) × m × r²<br/>  - 输入参数：d0, d1, rho<br/>  - 输出：J(kg·cm²), m(kg)<br/><br/>- **直线往复质量折算** (`linear_motion`)<br/>  - 描述：将直线质量折算到旋转轴的等效惯量。<br/>  - 公式：J = m × (r/1000)²<br/>  - 输入参数：mass, radius<br/>  - 输出：J(kg·cm²)<br/><br/><br/>### 示例用例<br/>- **Φ80×100mm 实心钢辊** (场景：`cylinder_parallel`)<br/>  - 输入：{"L": 100, "d0": 80, "d1": 0, "e": 0, "rho": 7850}<br/>  - 预期：{"J": "\u224815.9"}<br/>  - 备注：假定轴线重合，偏心为0。<br/>- **5kg 线性滑块折算** (场景：`linear_motion`)<br/>  - 输入：{"mass": 5, "radius": 150}<br/>  - 预期：{"J": "\u22481.125"}<br/>  - 备注：以 150mm 半径折算到回转惯量。<br/><br/>### 物理公式说明<br/>- 原理：基于转动惯量积分公式与平行轴定理，对常见形状给出简化公式。<br/>- 假设/适用范围：几何均匀分布、刚体假设；长度与直径需使用统一的单位换算。<br/>- 参考：机械设计手册-转动惯量章节<br/>
+  </article>
+</body>
+</html>

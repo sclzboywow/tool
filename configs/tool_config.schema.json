@@ -1,0 +1,249 @@
+{
+  "title": "ToolConfig",
+  "description": "Structured metadata for each tool configuration file.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "title": "Schema Version",
+      "description": "Schema version for compatibility checks",
+      "default": "1.0",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "description": "Unique tool identifier, typically matching route/calculator name",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "description": "Display title for the tool",
+      "type": "string"
+    },
+    "summary": {
+      "title": "Summary",
+      "description": "One sentence description",
+      "type": "string"
+    },
+    "category": {
+      "title": "Category",
+      "description": "Logical grouping or domain",
+      "type": "string"
+    },
+    "parameters": {
+      "title": "Parameters",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ParameterSpec"
+      }
+    },
+    "scenarios": {
+      "title": "Scenarios",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ScenarioSpec"
+      }
+    },
+    "examples": {
+      "title": "Examples",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ExampleCase"
+      }
+    },
+    "physics": {
+      "$ref": "#/definitions/PhysicsNote"
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "summary",
+    "parameters",
+    "scenarios"
+  ],
+  "definitions": {
+    "ParameterSpec": {
+      "title": "ParameterSpec",
+      "description": "Define a single input parameter for a tool.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "description": "Unique parameter key used by calculators and APIs",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "description": "Human readable display name",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "Short explanation of the parameter",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "description": "Data type used for validation and UI rendering",
+          "enum": [
+            "number",
+            "integer",
+            "string",
+            "boolean",
+            "enum"
+          ],
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "description": "Measurement unit (if applicable)",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "description": "Whether the parameter must be provided",
+          "default": true,
+          "type": "boolean"
+        },
+        "minimum": {
+          "title": "Minimum",
+          "description": "Minimum accepted value for numeric parameters",
+          "type": "number"
+        },
+        "maximum": {
+          "title": "Maximum",
+          "description": "Maximum accepted value for numeric parameters",
+          "type": "number"
+        },
+        "enum": {
+          "title": "Enum",
+          "description": "Allowed values when type is 'enum'",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "label",
+        "description",
+        "type"
+      ]
+    },
+    "ScenarioSpec": {
+      "title": "ScenarioSpec",
+      "description": "Describe a calculation scenario.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "description": "Scenario identifier used by the API",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "description": "Display title",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "description": "Short description of what is being calculated",
+          "type": "string"
+        },
+        "formula": {
+          "title": "Formula",
+          "description": "Key physical equation or derivation notes",
+          "type": "string"
+        },
+        "parameters": {
+          "title": "Parameters",
+          "description": "Parameters required for this scenario",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "outputs": {
+          "title": "Outputs",
+          "description": "Names of expected outputs (for documentation only)",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "summary",
+        "formula",
+        "parameters"
+      ]
+    },
+    "ExampleCase": {
+      "title": "ExampleCase",
+      "description": "Concrete example for a scenario.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "scenario": {
+          "title": "Scenario",
+          "description": "Scenario identifier this example belongs to",
+          "type": "string"
+        },
+        "inputs": {
+          "title": "Inputs",
+          "description": "Input parameter values",
+          "type": "object"
+        },
+        "expected": {
+          "title": "Expected",
+          "description": "Expected outputs or remarks",
+          "type": "object"
+        },
+        "notes": {
+          "title": "Notes",
+          "description": "Any additional commentary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "scenario",
+        "inputs"
+      ]
+    },
+    "PhysicsNote": {
+      "title": "PhysicsNote",
+      "description": "Physics background or reference for the tool.",
+      "type": "object",
+      "properties": {
+        "principle": {
+          "title": "Principle",
+          "description": "Core physics principle",
+          "type": "string"
+        },
+        "assumptions": {
+          "title": "Assumptions",
+          "description": "Assumptions or applicable range",
+          "type": "string"
+        },
+        "references": {
+          "title": "References",
+          "description": "Reference documents or standards",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "principle"
+      ]
+    }
+  }
+}

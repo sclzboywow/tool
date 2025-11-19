@@ -1,0 +1,29 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [
+    "venv",
+    "app/**",
+]
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501"]
+exclude = [
+    "scripts/analyze_*",
+    "scripts/verify_*",
+    "scripts/view_excel.py",
+    "scripts/compare_formulas.py",
+    "scripts/import_fan_data.py",
+    "scripts/test_accuracy.py",
+]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+follow_imports = "skip"
+show_error_codes = true
+pretty = true
+exclude = ["venv"]
+files = ["scripts/create_tool.py"]
+
