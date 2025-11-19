@@ -4,9 +4,10 @@
 import math
 from typing import Dict, Any
 from app.models.schemas import CurrentCalcResponse
+from app.services.base import BaseCalculator, CalculatorError
 
 
-class AngularAccelerationCalculator:
+class AngularAccelerationCalculator(BaseCalculator):
     """角加速度计算器"""
     
     SCENARIO_NAMES = {
@@ -36,24 +37,19 @@ class AngularAccelerationCalculator:
         elif scenario == "angular_acceleration":
             return self._calculate_angular_acceleration(params)
         else:
-            raise ValueError(f"未知的计算场景: {scenario}")
+            raise CalculatorError(f"未知的计算场景: {scenario}")
     
     def _calculate_acceleration_time(self, params: Dict[str, Any]) -> CurrentCalcResponse:
         """加速时间计算"""
-        t = params.get("t")  # 每次定位时间 (s)
-        A = params.get("A")  # 加减速时间比
-        
-        if t is None or t <= 0:
-            raise ValueError("每次定位时间t必须大于0")
-        if A is None or A <= 0 or A >= 1:
-            raise ValueError("加减速时间比A必须在0和1之间")
+        t = self.require_positive(params, "t", "每次定位时间t必须大于0")  # 每次定位时间 (s)
+        A = self.require_between(params, "A", "加减速时间比A必须在0和1之间", min_value=0, max_value=1, inclusive_min=False, inclusive_max=False)  # 加减速时间比
         
         # 加速时间: t0 = t × A
         t0 = t * A
         
         formula = f"加速时间: t<sub>0</sub> = t × A<br>"
-        formula += f"  = {t} × {A}<br>"
-        formula += f"  = {t0:.4f} s"
+        formula += f" = {t} × {A}<br>"
+        formula += f" = {t0:.4f} s"
         
         return CurrentCalcResponse(
             result=round(t0, 4),
@@ -65,19 +61,10 @@ class AngularAccelerationCalculator:
     
     def _calculate_motor_speed(self, params: Dict[str, Any]) -> CurrentCalcResponse:
         """电机转速计算"""
-        i = params.get("i")  # 减速比
-        t = params.get("t")  # 每次定位时间 (s)
-        L = params.get("L")  # 每次运动角度 (°)
-        A = params.get("A")  # 加减速时间比
-        
-        if i is None or i <= 0:
-            raise ValueError("减速比i必须大于0")
-        if t is None or t <= 0:
-            raise ValueError("每次定位时间t必须大于0")
-        if L is None or L <= 0:
-            raise ValueError("每次运动角度L必须大于0")
-        if A is None or A <= 0 or A >= 1:
-            raise ValueError("加减速时间比A必须在0和1之间")
+        i = self.require_positive(params, "i", "减速比i必须大于0")  # 减速比
+        t = self.require_positive(params, "t", "每次定位时间t必须大于0")  # 每次定位时间 (s)
+        L = self.require_positive(params, "L", "每次运动角度L必须大于0")  # 每次运动角度 (°)
+        A = self.require_between(params, "A", "加减速时间比A必须在0和1之间", min_value=0, max_value=1, inclusive_min=False, inclusive_max=False)  # 加减速时间比
         
         # 1. 加速时间
         t0 = t * A
@@ -95,20 +82,17 @@ class AngularAccelerationCalculator:
         NM = Nmax * i
         
         formula = f"加速时间: t<sub>0</sub> = t × A<br>"
-        formula += f"  = {t} × {A}<br>"
-        formula += f"  = {t0:.4f} s<br>"
+        formula += f" = {t} × {A}<br>"
+        formula += f" = {t0:.4f} s<br>"
         formula += f"减速机输出轴角加速度: β = (L×π)/(180×(t<sub>0</sub>×(t-t<sub>0</sub>)))<br>"
-        formula += f"  = ({L}×π)/(180×({t0:.4f}×({t}-{t0:.4f})))<br>"
-        formula += f"  = {beta:.6f} rad/s²<br>"
-        formula += f"减速机输出轴转速: N<sub>max</sub> = (β×t<sub>0</sub>/(2×π))×60<br>"
-        formula += f"  = ({beta:.6f}×{t0:.4f}/(2×π))×60<br>"
-        formula += f"  = {Nmax:.4f} rpm<br>"
+        formula += f" = ({L}×π)/(180×({t0:.4f}×({t}-{t0:.4f})))<br>"
+        formula += f" = {beta:.6f} rad/s²<br>"
         formula += f"电机输出轴角加速度: β<sub>M</sub> = i × β<br>"
-        formula += f"  = {i} × {beta:.6f}<br>"
-        formula += f"  = {betaM:.6f} rad/s²<br>"
+        formula += f" = {i} × {beta:.6f}<br>"
+        formula += f" = {betaM:.6f} rad/s²<br>"
         formula += f"电机输出轴转速: N<sub>M</sub> = N<sub>max</sub> × i<br>"
-        formula += f"  = {Nmax:.4f} × {i}<br>"
-        formula += f"  = {NM:.4f} rpm"
+        formula += f" = {Nmax:.4f} × {i}<br>"
+        formula += f" = {NM:.4f} rpm"
         
         return CurrentCalcResponse(
             result=round(NM, 4),
@@ -125,13 +109,8 @@ class AngularAccelerationCalculator:
     
     def _calculate_torque(self, params: Dict[str, Any]) -> CurrentCalcResponse:
         """扭矩计算"""
-        J = params.get("J")  # 负载惯量 (Kg.m²)
-        betaM = params.get("betaM")  # 电机输出轴角加速度 (rad/s²)
-        
-        if J is None or J <= 0:
-            raise ValueError("负载惯量J必须大于0")
-        if betaM is None or betaM <= 0:
-            raise ValueError("电机输出轴角加速度βM必须大于0")
+        J = self.require_positive(params, "J", "负载惯量J必须大于0")  # 负载惯量 (Kg.m²)
+        betaM = self.require_positive(params, "betaM", "电机输出轴角加速度βM必须大于0")  # 电机输出轴角加速度 (rad/s²)
         
         # 电机输出扭矩
         T = J * betaM
@@ -140,11 +119,11 @@ class AngularAccelerationCalculator:
         Ts = 2 * T
         
         formula = f"电机输出扭矩: T = J × β<sub>M</sub><br>"
-        formula += f"  = {J} × {betaM:.6f}<br>"
-        formula += f"  = {T:.6f} Nm<br>"
+        formula += f" = {J} × {betaM:.6f}<br>"
+        formula += f" = {T:.6f} Nm<br>"
         formula += f"启动扭矩: T<sub>s</sub> = 2 × T<br>"
-        formula += f"  = 2 × {T:.6f}<br>"
-        formula += f"  = {Ts:.6f} Nm"
+        formula += f" = 2 × {T:.6f}<br>"
+        formula += f" = {Ts:.6f} Nm"
         
         return CurrentCalcResponse(
             result=round(Ts, 6),
@@ -156,24 +135,11 @@ class AngularAccelerationCalculator:
     
     def _calculate_angular_acceleration(self, params: Dict[str, Any]) -> CurrentCalcResponse:
         """角加速度计算"""
-        # 获取参数
-        i = params.get("i")  # 减速比
-        t = params.get("t")  # 每次定位时间 (s)
-        L = params.get("L")  # 每次运动角度 (°)
-        A = params.get("A")  # 加减速时间比
-        J = params.get("J")  # 负载惯量 (Kg.m²)
-        
-        # 验证参数
-        if i is None or i <= 0:
-            raise ValueError("减速比i必须大于0")
-        if t is None or t <= 0:
-            raise ValueError("每次定位时间t必须大于0")
-        if L is None or L <= 0:
-            raise ValueError("每次运动角度L必须大于0")
-        if A is None or A <= 0 or A >= 1:
-            raise ValueError("加减速时间比A必须在0和1之间")
-        if J is None or J <= 0:
-            raise ValueError("负载惯量J必须大于0")
+        i = self.require_positive(params, "i", "减速比i必须大于0")  # 减速比
+        t = self.require_positive(params, "t", "每次定位时间t必须大于0")  # 每次定位时间 (s)
+        L = self.require_positive(params, "L", "每次运动角度L必须大于0")  # 每次运动角度 (°)
+        A = self.require_between(params, "A", "加减速时间比A必须在0和1之间", min_value=0, max_value=1, inclusive_min=False, inclusive_max=False)  # 加减速时间比
+        J = self.require_positive(params, "J", "负载惯量J必须大于0")  # 负载惯量 (Kg.m²)
         
         # 1. 加速时间: t0 = t × A
         # Excel公式：F12 = F5*F7
@@ -205,26 +171,26 @@ class AngularAccelerationCalculator:
         
         # 构建公式字符串
         formula = f"加速时间: t<sub>0</sub> = t × A<br>"
-        formula += f"  = {t} × {A}<br>"
-        formula += f"  = {t0:.4f} s<br>"
+        formula += f" = {t} × {A}<br>"
+        formula += f" = {t0:.4f} s<br>"
         formula += f"减速机输出轴角加速度: β = (L×π)/(180×(t<sub>0</sub>×(t-t<sub>0</sub>)))<br>"
-        formula += f"  = ({L}×π)/(180×({t0:.4f}×({t}-{t0:.4f})))<br>"
-        formula += f"  = {beta:.6f} rad/s²<br>"
+        formula += f" = ({L}×π)/(180×({t0:.4f}×({t}-{t0:.4f})))<br>"
+        formula += f" = {beta:.6f} rad/s²<br>"
         formula += f"减速机输出轴转速: N<sub>max</sub> = (β×t<sub>0</sub>/(2×π))×60<br>"
-        formula += f"  = ({beta:.6f}×{t0:.4f}/(2×π))×60<br>"
-        formula += f"  = {Nmax:.4f} rpm<br>"
+        formula += f" = ({beta:.6f}×{t0:.4f}/(2×π))×60<br>"
+        formula += f" = {Nmax:.4f} rpm<br>"
         formula += f"电机输出轴角加速度: β<sub>M</sub> = i × β<br>"
-        formula += f"  = {i} × {beta:.6f}<br>"
-        formula += f"  = {betaM:.6f} rad/s²<br>"
+        formula += f" = {i} × {beta:.6f}<br>"
+        formula += f" = {betaM:.6f} rad/s²<br>"
         formula += f"电机输出轴转速: N<sub>M</sub> = N<sub>max</sub> × i<br>"
-        formula += f"  = {Nmax:.4f} × {i}<br>"
-        formula += f"  = {NM:.4f} rpm<br>"
+        formula += f" = {Nmax:.4f} × {i}<br>"
+        formula += f" = {NM:.4f} rpm<br>"
         formula += f"电机输出扭矩: T = J × β<sub>M</sub><br>"
-        formula += f"  = {J} × {betaM:.6f}<br>"
-        formula += f"  = {T:.6f} Nm<br>"
+        formula += f" = {J} × {betaM:.6f}<br>"
+        formula += f" = {T:.6f} Nm<br>"
         formula += f"启动扭矩: T<sub>s</sub> = 2 × T<br>"
-        formula += f"  = 2 × {T:.6f}<br>"
-        formula += f"  = {Ts:.6f} Nm"
+        formula += f" = 2 × {T:.6f}<br>"
+        formula += f" = {Ts:.6f} Nm"
         
         return CurrentCalcResponse(
             result=round(Ts, 6),
