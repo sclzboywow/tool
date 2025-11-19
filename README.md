@@ -618,16 +618,19 @@ curl -X POST http://localhost:8000/api/tools/your-tool/calculate \
    ├─ 标题（h1）
    └─ 描述（subtitle）
 
-2. 参数说明表格（reference-table）
-   ├─ 3栏布局（grid-template-columns: 1fr 4px 1fr 4px 1fr）
-   ├─ 绿色分隔线（#4caf50，宽度2px）
-   └─ 底部必填项说明（红色文字）
+2. 参数说明表格（reference-table，可选位置）
+   ├─ 2栏布局：grid-template-columns: 1fr 4px 1fr（分隔线宽度4px）
+   ├─ 3栏布局：grid-template-columns: 1fr 4px 1fr 4px 1fr（分隔线宽度2px）
+   ├─ 绿色分隔线（#4caf50）
+   └─ 底部必填项说明（红色文字，可选）
 
 3. 标签页导航（sub-tabs-container，如果多个计算模块）
    └─ 标签按钮（sub-tab）
+   └─ 注意：参数说明表格可以在标签页之前（全局），也可以在标签页内（每个标签页独立）
 
 4. 每个标签页内容（tab-content）
    ├─ 标题（h2）
+   ├─ 参数说明表格（如果标签页内需要独立参数说明）
    ├─ 公式说明（formula-info，在输入表单之前）
    ├─ 物理来源和适用范围说明（蓝色边框框，在输入表单之前）
    ├─ 输入表单（form-group）
@@ -635,9 +638,20 @@ curl -X POST http://localhost:8000/api/tools/your-tool/calculate \
    └─ 结果显示区域（result-box）
 ```
 
+**布局选择规则**：
+- **2栏布局**：适用于参数较少的工具（如 belt-intermittent, screw-horizontal）
+  - `grid-template-columns: 1fr 4px 1fr`
+  - 分隔线：`width: 4px`
+- **3栏布局**：适用于参数较多的工具（如 fan-selection, servo-motor-selection）
+  - `grid-template-columns: 1fr 4px 1fr 4px 1fr`
+  - 分隔线：`width: 2px`
+- **参数表格位置**：
+  - 如果所有标签页共享相同参数：放在标签页之前（全局）
+  - 如果每个标签页有不同参数：放在每个标签页内
+
 **重要规则**：
 - 公式说明和物理来源说明必须在输入表单之前
-- 参数说明表格使用3栏布局，绿色分隔线
+- 参数说明表格根据参数数量选择2栏或3栏布局
 - 标签页用于组织多个计算模块
 - 每个标签页内容独立，包含完整的输入和结果显示
 
