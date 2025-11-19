@@ -20,17 +20,29 @@ workspace/
 │   ├── models/                  # 数据模型
 │   │   └── schemas.py          # Pydantic请求/响应模型
 │   ├── routers/                 # 路由模块
-│   │   ├── tools.py            # 页面路由（渲染HTML）
-│   │   └── tools_api.py        # API路由（计算接口）
+│   │   ├── tools.py            # 页面路由工厂（动态生成路由）
+│   │   └── tools_api.py        # API路由工厂（动态生成路由）
 │   ├── services/                # 业务逻辑层（计算服务）
-│   │   ├── calculator.py       # 计算器统一导出
+│   │   ├── registry.py         # 工具注册表（从配置加载工具）
+│   │   ├── base_calculator.py  # 计算器基类
 │   │   ├── current_calculator.py      # 工具1的计算逻辑
 │   │   ├── inertia_calculator.py      # 工具2的计算逻辑
 │   │   └── screw_horizontal_calculator.py  # 工具3的计算逻辑
 │   └── utils/                   # 工具函数
+│       └── calculator_factory.py  # 计算器工厂（缓存实例）
+├── configs/                     # 工具配置文件
+│   ├── tools/                   # 工具配置目录
+│   │   ├── current_calc.yaml   # 工具1配置
+│   │   └── inertia_calc.yaml   # 工具2配置
+│   └── tool_config.schema.json # 配置JSON Schema
+├── docs/                        # 文档目录
+│   ├── tool_index.md           # 工具索引（Markdown）
+│   └── tool_index.html         # 工具索引（HTML预览）
 ├── templates/                   # Jinja2模板
 │   ├── base.html               # 基础模板（导航、样式）
 │   ├── index.html              # 主页（工具列表）
+│   ├── partials/               # 模板片段
+│   │   └── macros.html         # 宏定义
 │   └── tools/                  # 各工具页面
 │       ├── current_calc.html   # 工具1页面
 │       ├── inertia_calc.html   # 工具2页面
@@ -38,24 +50,65 @@ workspace/
 ├── static/                      # 静态资源
 │   ├── css/
 │   │   └── style.css           # 全局样式
-│   └── js/
-│       ├── common.js           # 公共JavaScript函数
-│       └── tools/              # 各工具的前端逻辑
-│           ├── current_calc.js
-│           ├── inertia_calc.js
-│           └── screw_horizontal.js
+│   ├── js/
+│   │   ├── common.js           # 公共JavaScript函数
+│   │   └── tools/              # 各工具的前端逻辑
+│   │       ├── current_calc.js
+│   │       ├── inertia_calc.js
+│   │       └── screw_horizontal.js
+│   └── manifest.json           # 静态资源指纹映射
 ├── scripts/                     # 开发辅助脚本
+│   ├── create_tool.py          # 工具脚手架生成器（快速创建新工具）
+│   ├── fingerprint_static.py   # 静态资源指纹生成器
+│   ├── gen_tool_artifacts.py   # 从配置生成工具文件
+│   ├── validate_tool_configs.py  # 验证工具配置
+│   ├── tool_config_models.py   # 工具配置数据模型
+│   ├── package_app.py          # 打包应用
 │   ├── analyze_excel.py        # Excel分析工具
 │   ├── view_excel.py           # Excel查看工具
 │   ├── compare_formulas.py     # 公式对比工具
 │   └── verify_*.py             # 公式验证工具
+├── .github/                     # GitHub配置
+│   └── workflows/              # GitHub Actions工作流
+│       ├── ci.yml              # CI/CD工作流
+│       └── validate-configs.yml  # 配置验证工作流
 ├── data/                        # 数据目录
 │   └── *.xlsx                  # Excel源文件
-├── requirements.txt             # Python依赖
+├── requirements.txt             # Python生产依赖
+├── requirements-dev.txt         # Python开发依赖
+├── pyproject.toml              # Python项目配置（Ruff、Mypy）
 └── README.md                    # 本文档
 ```
 
 ## 开发流程
+
+### 快速开始：使用工具生成器
+
+**推荐方式**：使用 `create_tool.py` 脚本快速生成工具脚手架，然后根据实际需求修改：
+
+```bash
+# 生成新工具的完整脚手架
+python3 scripts/create_tool.py \
+  --slug your-tool-name \
+  --name "工具显示名称" \
+  --description "工具描述"
+
+# 查看帮助
+python3 scripts/create_tool.py --help
+
+# 干运行（只显示将要生成的文件，不实际创建）
+python3 scripts/create_tool.py \
+  --slug your-tool-name \
+  --name "工具显示名称" \
+  --description "工具描述" \
+  --dry-run
+```
+
+生成的文件包括：
+- `app/config/your-tool-name.json` - 工具配置（如果使用配置化方式）
+- `app/services/your_tool_name_calculator.py` - 计算器类
+- `static/js/tools/your-tool-name.js` - 前端JavaScript
+- `templates/tools/your-tool-name.html` - HTML模板
 
 ### 配置化工具元数据
 
@@ -598,8 +651,11 @@ curl -X POST http://localhost:8000/api/tools/your-tool/calculate \
 # 系统包
 sudo apt install -y python3-fastapi python3-uvicorn python3-jinja2 python3-pydantic python3-openpyxl
 
-# 或使用pip
+# 生产依赖
 pip install -r requirements.txt
+
+# 开发依赖（代码检查、类型检查、测试）
+pip install -r requirements-dev.txt
 ```
 
 ### 2. 运行开发服务器
@@ -617,9 +673,28 @@ python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ### 4. 构建静态资源指纹
 
-- 运行 `python scripts/fingerprint_static.py`，为 `static/js/tools/*.js` 生成指纹文件和 `static/manifest.json`
-- 模板通过 `static_asset()` 读取 manifest，未生成时会自动回退到原始文件名
+```bash
+# 生成静态资源指纹和 manifest.json
+python3 scripts/fingerprint_static.py
+```
+
+- 为 `static/js/tools/*.js` 生成带哈希的文件名（如 `angular_acceleration.0270f807eb01.js`）
+- 生成 `static/manifest.json` 映射文件
+- 模板通过 `static_asset()` 函数读取 manifest，未生成时会自动回退到原始文件名
 - 部署时同步 `static/manifest.json` 及指纹化后的脚本文件，便于前端缓存失效控制
+
+### 5. 代码检查和测试
+
+```bash
+# Ruff 代码检查
+ruff check .
+
+# Mypy 类型检查
+mypy scripts/create_tool.py
+
+# 运行测试
+pytest
+```
 
 ## 部署配置
 
@@ -736,24 +811,42 @@ python3 scripts/analyze_excel.py data/文件名.xlsx "工作表名"
 
 添加新工具时，确保完成以下步骤：
 
+**快速方式（推荐）**：
+- [ ] 使用 `scripts/create_tool.py` 生成工具脚手架
+- [ ] 根据实际需求修改生成的文件
+- [ ] 实现计算逻辑
+- [ ] 测试和验证
+
+**手动方式**：
 - [ ] 分析Excel文件，提取公式和参数
 - [ ] 创建后端计算服务类（`app/services/xxx_calculator.py`）
 - [ ] 实现所有计算场景的方法
 - [ ] 添加参数验证和错误处理
-- [ ] 创建API请求模型（`app/routers/tools_api.py`）
-- [ ] 添加API路由
-- [ ] 添加页面路由（`app/routers/tools.py`）
+- [ ] 创建工具配置（`configs/tools/xxx.yaml`，如果使用配置化方式）
 - [ ] 创建HTML页面（`templates/tools/xxx.html`）
 - [ ] 添加参数说明表格（如需要）
 - [ ] 添加物理来源说明
 - [ ] 创建前端JavaScript（`static/js/tools/xxx.js`）
 - [ ] 实现输入验证
 - [ ] 实现API调用和结果显示
-- [ ] 在主页注册新工具（`app/main.py`）
 - [ ] 创建验证脚本（`scripts/verify_xxx_formulas.py`）
 - [ ] 运行验证，确保公式正确
+- [ ] 运行代码检查：`ruff check .` 和 `mypy`
 - [ ] 测试页面和API
+- [ ] 运行 `python3 scripts/fingerprint_static.py` 更新静态资源指纹
 - [ ] 重启服务并验证
+
+## CI/CD
+
+项目配置了 GitHub Actions 自动检查：
+
+- **代码检查**：使用 Ruff 进行代码风格检查
+- **类型检查**：使用 Mypy 进行类型检查
+- **测试**：运行 Pytest 测试套件
+- **配置验证**：自动验证工具配置文件
+- **工具生成器测试**：确保工具生成器正常工作
+
+工作流文件位于 `.github/workflows/ci.yml`。
 
 ## 常见问题
 
